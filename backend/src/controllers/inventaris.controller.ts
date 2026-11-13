@@ -1,0 +1,16 @@
+import type { NextFunction, Request, Response } from 'express';
+import { AppError } from '@/utils/errors';
+
+const stub = async (
+  _req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  next(new AppError('ERR-SYS-01'));
+};
+
+export const listInventaris = stub;
+export const createInventaris = stub;
+export const updateInventaris = stub;
+export const restockInventaris = stub;
+export const listRiwayatStok = stub;
