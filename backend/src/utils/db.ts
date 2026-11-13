@@ -31,13 +31,24 @@ export function getPool(): Promise<sql.ConnectionPool> {
   return connection;
 }
 
-// ponytail: mssql multiplexes one pool; each request borrows and returns a connection itself.
-export function acquire(): Promise<sql.ConnectionPool> {
-  return getPool();
+// ponytail: one dedicated pool per request so session context pins to a single physical connection.
+const requestConfig: sql.config = {
+  ...poolConfig,
+  pool: { max: 1, min: 0, idleTimeoutMillis: 30000 },
+};
+
+export async function acquire(): Promise<sql.ConnectionPool> {
+  const scoped = new sql.ConnectionPool(requestConfig);
+  await scoped.connect();
+  return scoped;
 }
 
-export function release(_pool: sql.ConnectionPool): void {
-  // Nothing to hand back: the pool reclaims the connection when the request finishes.
+export async function release(conn: sql.ConnectionPool): Promise<void> {
+  try {
+    await conn.close();
+  } catch {
+    // already closed or torn down: releasing is best-effort
+  }
 }
 
 export async function withTransaction<T>(
