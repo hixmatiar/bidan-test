@@ -360,7 +360,7 @@ export async function hasRedFlagConfirmationToday(
         AND entitas = 'pasien'
         AND entitas_id = CONVERT(NVARCHAR(64), @pasien_id)
         AND user_id = @user_id
-        AND CAST(created_at AS DATE) = CAST(SWITCHOFFSET(SYSDATETIMEOFFSET(), '+07:00') AS DATE)
+        AND CAST(DATEADD(MINUTE, 420, created_at) AS DATE) = CAST(SWITCHOFFSET(SYSDATETIMEOFFSET(), '+07:00') AS DATE)
     `);
 
   return result.recordset.length > 0;
