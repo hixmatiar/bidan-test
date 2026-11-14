@@ -2,8 +2,14 @@ import type { NextFunction, Request, Response } from 'express';
 import type { ConnectionPool } from 'mssql';
 import type { AuthUser } from '@/types/api';
 import { AppError } from '@/utils/errors';
+import { buildRmePdf } from '@/utils/pdf';
 import { ok } from '@/utils/response';
-import type { TambahAlergiInput, UpdateAlergiInput } from './rme.validators';
+import type {
+  BuatKunjunganInput,
+  CatatanKunjunganInput,
+  TambahAlergiInput,
+  UpdateAlergiInput,
+} from './rme.validators';
 import * as service from './rme.service';
 
 function currentUser(req: Request): AuthUser {
@@ -82,6 +88,77 @@ export async function updateAlergi(
       req.body as UpdateAlergiInput,
     );
     ok(res, result, 'Alergi atau kondisi berhasil diperbarui');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function buatKunjungan(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await service.buatKunjungan(
+      currentDb(res),
+      currentUser(req),
+      req.params.id,
+      req.body as BuatKunjunganInput,
+    );
+    res.status(201);
+    ok(res, result, 'Kunjungan berhasil disimpan');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function tambahCatatan(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await service.tambahCatatan(
+      currentDb(res),
+      currentUser(req),
+      req.params.id,
+      req.body as CatatanKunjunganInput,
+    );
+    ok(res, result, 'Catatan kunjungan berhasil ditambahkan');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function exportRme(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const data = await service.siapkanEksporRme(
+      currentDb(res),
+      currentUser(req),
+      req.params.id,
+      currentIp(req),
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${data.filename}"`,
+    );
+
+    const doc = buildRmePdf({
+      pasien: data.pasien,
+      alergi_aktif: data.alergi_aktif,
+      kunjungan: data.kunjungan,
+      generated_at: data.generated_at,
+    });
+
+    doc.on('error', next);
+    doc.pipe(res);
+    doc.end();
   } catch (error) {
     next(error);
   }

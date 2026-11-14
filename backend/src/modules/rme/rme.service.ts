@@ -1,11 +1,19 @@
 import type { ConnectionPool } from 'mssql';
 import type { AuthUser, PaginationMeta } from '@/types/api';
+import { dateTimeWib, todayJakarta } from '@/utils/date';
 import { AppError } from '@/utils/errors';
 import { buildMeta, parsePagination } from '@/utils/pagination';
-import type { TambahAlergiInput, UpdateAlergiInput } from './rme.validators';
+import type {
+  BuatKunjunganInput,
+  CatatanKunjunganInput,
+  TambahAlergiInput,
+  UpdateAlergiInput,
+} from './rme.validators';
 import * as repo from './rme.repository';
 import type {
   AlergiRow,
+  CatatanKunjunganRow,
+  CreatedKunjungan,
   KunjunganDenganResep,
   PasienListRow,
   ProfilRmeRow,
@@ -140,6 +148,131 @@ export async function updateAlergi(
   }
 
   return updated;
+}
+
+function parseKunjunganDate(value?: string): Date {
+  if (!value) return new Date();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T00:00:00+07:00`);
+  }
+  return new Date(value);
+}
+
+export async function buatKunjungan(
+  db: Db,
+  user: AuthUser,
+  pasienId: string,
+  input: BuatKunjunganInput,
+): Promise<CreatedKunjungan> {
+  const confirmed = await repo.hasRedFlagConfirmationToday(
+    db,
+    pasienId,
+    user.user_id,
+  );
+
+  if (!confirmed) {
+    throw new AppError('ERR-RME-03');
+  }
+
+  if (input.koreksi_dari_id) {
+    const owned = await repo.kunjunganMilikPasien(
+      db,
+      input.koreksi_dari_id,
+      pasienId,
+    );
+    if (!owned) {
+      throw new AppError('ERR-VAL-01', 'Validasi body gagal', [
+        {
+          path: 'koreksi_dari_id',
+          message: 'Kunjungan koreksi tidak ditemukan untuk pasien ini',
+        },
+      ]);
+    }
+  }
+
+  return repo.createKunjunganViaSp(db, {
+    pasienId,
+    reservasiId: input.reservasi_id ?? null,
+    bidanId: user.user_id,
+    layananId: input.layanan_id,
+    tanggalKunjungan: parseKunjunganDate(input.tanggal_kunjungan),
+    keluhan: input.keluhan,
+    pemeriksaanFisik: input.pemeriksaan_fisik,
+    diagnosis: input.diagnosis,
+    tindakan: input.tindakan,
+    catatanBebas: input.catatan_bebas ?? null,
+    koreksiDariId: input.koreksi_dari_id ?? null,
+    resep: (input.resep ?? []).map((item) => ({
+      itemId: item.item_id,
+      jumlah: item.jumlah,
+      aturanPakai: item.aturan_pakai ?? null,
+    })),
+  });
+}
+
+export async function tambahCatatan(
+  db: Db,
+  user: AuthUser,
+  kunjunganId: string,
+  input: CatatanKunjunganInput,
+): Promise<CatatanKunjunganRow> {
+  const appendText = `\n[${dateTimeWib()}][${user.username}] ${input.catatan}`;
+  const row = await repo.appendCatatanKunjungan(db, kunjunganId, appendText);
+
+  if (!row) {
+    throw new AppError('ERR-RME-02');
+  }
+
+  return row;
+}
+
+export interface RmeExportData {
+  pasien: ProfilRmeRow;
+  alergi_aktif: AlergiRow[];
+  kunjungan: KunjunganDenganResep[];
+  filename: string;
+  generated_at: string;
+}
+
+function safeFilenamePart(value: string): string {
+  const cleaned = value
+    .normalize('NFKD')
+    .replace(/[^A-Za-z0-9._-]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return cleaned.length > 0 ? cleaned : 'pasien';
+}
+
+export async function siapkanEksporRme(
+  db: Db,
+  user: AuthUser,
+  pasienId: string,
+  ip: string | null,
+): Promise<RmeExportData> {
+  const profil = await repo.findProfilRme(db, pasienId);
+
+  if (!profil) {
+    throw new AppError('ERR-RME-01');
+  }
+
+  const alergi = await repo.listAlergiAktif(db, pasienId);
+  const kunjungan = await repo.listKunjunganDenganResep(db, pasienId);
+
+  await repo.insertAuditDataExported(db, {
+    pasienId,
+    userId: user.user_id,
+    username: user.username,
+    ip,
+  });
+
+  const tanggal = todayJakarta();
+
+  return {
+    pasien: profil,
+    alergi_aktif: alergi,
+    kunjungan,
+    filename: `RME-${safeFilenamePart(profil.nama)}-${tanggal}.pdf`,
+    generated_at: dateTimeWib(),
+  };
 }
 
 export async function konfirmasiRedFlag(
