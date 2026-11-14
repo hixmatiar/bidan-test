@@ -1,12 +1,22 @@
 import { Router } from 'express';
-import { updateAlergi } from '@/controllers/alergi.controller';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
 import { dbSessionContext } from '@/middlewares/dbSession';
+import { validate } from '@/middlewares/validate';
+import { updateAlergi } from '@/modules/rme/rme.controller';
+import {
+  alergiIdParamsSchema,
+  updateAlergiSchema,
+} from '@/modules/rme/rme.validators';
 
 const router = Router();
 
 router.use(authMiddleware, dbSessionContext);
 
-router.patch('/:id', checkRole('BIDAN'), updateAlergi);
+router.patch(
+  '/:id',
+  checkRole('BIDAN'),
+  validate({ params: alergiIdParamsSchema, body: updateAlergiSchema }),
+  updateAlergi,
+);
 
 export default router;
