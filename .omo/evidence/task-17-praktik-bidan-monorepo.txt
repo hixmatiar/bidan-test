@@ -1,0 +1,94 @@
+TASK 17 EVIDENCE - session list, create and update (endpoints 16-18)
+Captured: 2026-11-14 (Asia/Jakarta)
+
+FILES
+  backend/src/modules/sesi/validators.ts  - create/update/list/params Zod schemas
+                                            (jam_selesai > jam_mulai, kuota 1..200,
+                                            durasi 5..60 default 15 only on create,
+                                            tanggal YYYY-MM-DD calendar check)
+  backend/src/modules/sesi/repository.ts  - parameterized mssql; v_sesi_sisa_kuota reads,
+                                            dynamic WHERE for date range/is_active,
+                                            COUNT(*) OVER + OFFSET/FETCH ordered
+                                            tanggal, jam_mulai; overlap range query;
+                                            active-booking count (status <> 'DIBATALKAN')
+  backend/src/modules/sesi/service.ts     - overlap -> ERR-RSV-02, unknown id -> ERR-RSV-03,
+                                            quota below booked -> ERR-RSV-01
+  backend/src/modules/sesi/controller.ts  - POST handlers returning meta on list, 201 on create
+  backend/src/routes/sesi.routes.ts       - 3 stubs replaced; authMiddleware +
+                                            dbSessionContext + checkRole('ADMIN') + validate
+  backend/src/controllers/sesi.controller.ts - removed (three replaced stubs)
+
+DESIGN NOTES
+  - INSERT cannot use OUTPUT because sesi_praktik has an audit trigger; sesi_id is
+    generated with node:crypto randomUUID and inserted explicitly.
+  - PATCH merges the existing row before validating jam_selesai > jam_mulai, so a
+    partial {jam_selesai} update is checked against the stored jam_mulai.
+  - is_active=false only flips the flag; reservations are untouched (verified: 2 rows
+    remained after deactivation).
+  - No DELETE route. Audit rows come from trg_audit_sesi_praktik via SESSION_CONTEXT
+    user_id/ip set by dbSessionContext.
+
+=== TSC ===
+tsc_exit=0
+=== BUILD ===
+build_exit=0
+=== ROUTE AUDIT ===
+POST /api/v1/sesi
+POST /api/v1/sesi/list
+TOTAL 51
+GET 0
+
+SERVER
+  PORT=4117 DB_HOST=127.0.0.1 DB_PORT=1433 DB_NAME=PraktikBidan DB_USER=sa \
+  DB_PASSWORD=<container MSSQL_SA_PASSWORD, never printed> JWT_SECRET=test \
+  WA_API_URL=http://127.0.0.1:1 WA_API_TOKEN=x RATE_LIMIT_PUBLIC=1000 node dist/server.js
+  (started with nohup, killed by PID; port 4117 confirmed closed afterwards)
+
+LIVE: login admin (Admin#2026)
+  http=200 status=success keys=[token, expires_in, user]
+
+LIVE: POST /api/v1/sesi (2026-12-14 09:00-12:00, kuota 10, durasi 15)
+  http=201
+  {"status":"success","data":{"tanggal":"2026-12-14","jam_mulai":"09:00:00","jam_selesai":"12:00:00","sesi_id":"CE1267C8-1E28-4ADF-8110-1A45C59999E5","kuota_maks":10,"durasi_per_pasien":15,"is_active":true,"terpakai":0,"sisa_kuota":10},"message":"Sesi praktik berhasil dibuat"}
+
+LIVE: POST /api/v1/sesi/list (tanggal_dari=sampai=2026-12-14, page 1 per_page 50)
+  http=200
+  {"status":"success","data":[{"tanggal":"2026-12-14","jam_mulai":"09:00:00","jam_selesai":"12:00:00","sesi_id":"CE1267C8-1E28-4ADF-8110-1A45C59999E5","kuota_maks":10,"durasi_per_pasien":15,"is_active":true,"terpakai":0,"sisa_kuota":10}],"message":"Berhasil","meta":{"current_page":1,"per_page":50,"total":1,"last_page":1}}
+
+LIVE: POST /api/v1/sesi overlapping 11:00-13:00 same date
+  http=409
+  {"status":"error","error_code":"ERR-RSV-02","message":"Jadwal bentrok atau reservasi ganda","errors":[]}
+
+LIVE: POST /api/v1/sesi with jam_selesai < jam_mulai
+  http=422
+  {"status":"error","error_code":"ERR-VAL-01","message":"Validasi body gagal","errors":[{"path":"jam_selesai","message":"jam_selesai harus lebih besar dari jam_mulai"}]}
+
+LIVE: PATCH /api/v1/sesi/<unknown uuid>
+  http=404
+  {"status":"error","error_code":"ERR-RSV-03","message":"Reservasi tidak ditemukan","errors":[]}
+
+LIVE: PATCH kuota_maks=5 -> 200, row shows kuota_maks=5 sisa_kuota=5
+LIVE: PATCH {} -> 422 ERR-VAL-01 "Minimal satu field harus diisi"
+LIVE: PATCH durasi_per_pasien=30 -> 200, kuota stays 5 (partial default does not clobber)
+
+LIVE: quota below booked (2 temporary MENUNGGU reservations inserted for the scratch session)
+  PATCH {"kuota_maks":1} -> http=409
+  {"status":"error","error_code":"ERR-RSV-01","message":"Kuota sesi praktik sudah penuh","errors":[]}
+
+LIVE: PATCH is_active=false -> 200 {"is_active":false,"terpakai":2,"sisa_kuota":3}; DB count after = 2 (bookings preserved)
+
+LIVE: auth guard
+  POST /api/v1/sesi/list without token -> 401 ERR-AUTH-02
+  POST /api/v1/sesi/list as BIDAN      -> 403 ERR-AUTH-03
+
+AUDIT (dbo.audit_logs WHERE entitas='sesi_praktik' AND entitas_id=scratch id, before cleanup)
+  log_id 20162 aksi=CREATE user_id=3FCB423E-F36B-1410-864C-00CA0D54CA7B ip=::ffff:127.0.0.1
+  log_id 20163 aksi=UPDATE user_id=3FCB423E-F36B-1410-864C-00CA0D54CA7B ip=::ffff:127.0.0.1
+  log_id 20164 aksi=UPDATE user_id=3FCB423E-F36B-1410-864C-00CA0D54CA7B ip=::ffff:127.0.0.1
+  (CREATE row proves trg_audit_sesi_praktik logged the new session with the admin identity)
+
+CLEANUP
+  deleted_reservasi=2, deleted_sesi=1, reservations after=0
+  (DELETE row 20173 is the direct cleanup DELETE, session context unset -> user_id NULL)
+  scratch session removed; seed sesi rows untouched
+  server stopped (PID 47396), port 4117 closed

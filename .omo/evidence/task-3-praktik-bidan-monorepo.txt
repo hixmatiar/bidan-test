@@ -1,0 +1,20 @@
+=== task 3 evidence 2026-11-13T09:10:49Z ===
+$ cd backend && npx tsc --noEmit
+exit=0
+$ cd backend && npx tsc (emit dist)
+exit=0
+$ ls backend/dist/utils backend/dist/types
+backend/dist/types:
+api.js
+
+backend/dist/utils:
+errors.js
+pagination.js
+response.js
+$ node -e <catalogue assertion over dist/utils/errors.js>
+catalogue codes: 31 all valid, AppError carries code/http/message
+exit=0
+$ node -e <manual QA: ok()/fail()/parsePagination>
+manual QA ok: meta-optional envelope, fail mapping, pagination clamps 500->100, 0->15, non-numeric->ERR-VAL-03
+exit=0
+cleanup: rm -rf backend/dist (build artifact, gitignored)

@@ -1,0 +1,158 @@
+TASK 18 EVIDENCE - RME list, detail, allergy CRUD, red-flag confirmation (endpoints 20-24)
+Captured: 2026-11-14 (Asia/Jakarta)
+
+FILES
+  backend/src/modules/rme/rme.validators.ts
+    - pasienIdParamsSchema / alergiIdParamsSchema (UUID params)
+    - tambahAlergiSchema: kategori enum, nama 1..150, item_id optional UUID,
+      keterangan optional max 500; superRefine requires item_id for ALERGI_OBAT
+      and rejects item_id for KEHAMILAN_RISTI / PENYAKIT_BAWAAN
+    - updateAlergiSchema: is_active?, keterangan? (nullable)
+  backend/src/modules/rme/rme.repository.ts
+    - parameterized mssql; listPasien COUNT + OFFSET/FETCH with
+      PASIEN_SEARCH_WHERE (nama/nik/no_telepon) and
+      CAST(CASE WHEN EXISTS(active ALERGI_OBAT/KEHAMILAN_RISTI) THEN 1 ELSE 0 END AS BIT)
+      AS has_red_flag plus kunjungan count / MAX(tanggal_kunjungan)
+    - findProfilRme reads dbo.v_profil_rme; listAlergiAktif LEFT JOIN item_inventaris;
+      listKunjunganDenganResep orders kunjungan tanggal_kunjungan DESC, created_at DESC
+      and groups resep rows by kunjungan_id
+    - insertAlergi OUTPUT INSERTED.alergi_id; updateAlergi dynamic SET + updated_at
+    - insertAuditViewRme (aksi VIEW_RME, entitas pasien, nilai_baru NULL)
+    - insertAuditRedFlagConfirmed (aksi RED_FLAG_CONFIRMED, nilai_baru = JSON snapshot,
+      OUTPUT INSERTED.created_at)
+  backend/src/modules/rme/rme.service.ts
+    - listPasien parsePagination + parseQ (ERR-VAL-03), maps has_red_flag to boolean
+    - rmeDetail throws ERR-RME-01 when profile missing, then inserts VIEW_RME audit
+      BEFORE returning (a failed audit write fails the request)
+    - tambahAlergi pasienExists -> ERR-RME-01; ALERGI_OBAT itemExists -> ERR-VAL-01
+    - updateAlergi unknown id -> ERR-RME-01 with message "Alergi atau kondisi tidak
+      ditemukan" (documented choice; no dedicated alergi-not-found code exists)
+    - konfirmasiRedFlag pasienExists -> ERR-RME-01, snapshot active red flags, returns
+      { confirmed: true, confirmed_at }
+  backend/src/modules/rme/rme.controller.ts
+    - listPasien / rmeDetail / tambahAlergi / updateAlergi / konfirmasiRedFlag
+  backend/src/routes/pasien.routes.ts
+    - /list, /:id/rme/detail, /:id/alergi, /:id/red-flag/konfirmasi wired to rme module
+      with authMiddleware + dbSessionContext + checkRole('BIDAN') + validate
+  backend/src/routes/alergi.routes.ts
+    - PATCH /:id wired to rme module with checkRole('BIDAN') + validate
+
+DESIGN NOTES
+  - ADMIN gets 403 ERR-AUTH-03 on every task-18 route via checkRole('BIDAN').
+  - RME detail writes exactly one VIEW_RME audit row per successful call; admin calls
+    never reach the controller, so no NIK/RME data can leak to ADMIN.
+  - PATCH /alergi/:id unknown id uses ERR-RME-01 (404) with an explicit message; no
+    dedicated alergi-not-found code exists in ERROR_CATALOG.
+  - Red-flag snapshot is the active ALERGI_OBAT + KEHAMILAN_RISTI rows serialized with
+    JSON.stringify and stored in audit_logs.nilai_baru (ISJSON check satisfied).
+  - No new table was created for confirmation.
+
+=== TSC / BUILD / ROUTE AUDIT ===
+tsc_exit=0
+build_exit=0
+audit_exit=0
+  TOTAL 51
+  GET 0
+  (includes POST /api/v1/pasien/list, POST /api/v1/pasien/:id/rme/detail,
+   POST /api/v1/pasien/:id/alergi, PATCH /api/v1/alergi/:id,
+   POST /api/v1/pasien/:id/red-flag/konfirmasi)
+
+SERVER
+  PORT=4118 DB_HOST=127.0.0.1 DB_PORT=1433 DB_NAME=PraktikBidan DB_USER=sa
+  DB_PASSWORD=<container MSSQL_SA_PASSWORD, never printed> JWT_SECRET=test
+  WA_API_URL=http://127.0.0.1:1 WA_API_TOKEN=x node dist/server.js
+  started with nohup (PID 53303), log .omo/scratch/server18.log; killed by PID and
+  port 4118 confirmed closed afterwards.
+
+SCRATCH PATIENT (direct SQL, unique NIK)
+  pasien_id=A1180000-0000-4000-8000-000000000018 nik=8888777766665555
+  nama="Pasien Scratch Task 18" (insert trigger added 1 CREATE audit row)
+  item_id=59CB423E-F36B-1410-864C-00CA0D54CA7B (Amoxicillin 500 mg)
+
+LIVE: login bidan (Bidan#2026)
+  http=200 status=success role=BIDAN user_id=3DCB423E-F36B-1410-864C-00CA0D54CA7B
+
+LIVE: POST /api/v1/pasien/list as BIDAN (q=Scratch, page 1, per_page 10)
+  http=200
+  data[0]: pasien_id=A1180000-...-000000000018 has_red_flag=false
+            jumlah_kunjungan=0 kunjungan_terakhir=null
+  meta: {"current_page":1,"per_page":10,"total":1,"last_page":1}
+
+LIVE: POST /api/v1/pasien/list as ADMIN
+  http=403 {"error_code":"ERR-AUTH-03","message":"Peran tidak diizinkan"}
+
+LIVE: POST /api/v1/pasien/:id/rme/detail as BIDAN
+  http=200
+  data: pasien{... jumlah_red_flag_aktif:0}, alergi_aktif:[], has_red_flag:false,
+        kunjungan:[]
+
+LIVE: POST /api/v1/pasien/:id/rme/detail as ADMIN
+  http=403 ERR-AUTH-03 (no RME fields, no NIK leak)
+
+AUDIT after first detail: CREATE|1 (pasien trigger), VIEW_RME|1
+  -> exactly one VIEW_RME row per successful detail call
+
+LIVE: POST /api/v1/pasien/:id/alergi BIDAN
+  {"kategori":"ALERGI_OBAT","nama":"Amoxicillin","item_id":"59CB...","keterangan":"ruam"}
+  http=200 data.alergi_id=2A3C433E-F36B-1410-864D-00CA0D54CA7B is_active=true
+  dbo.fn_cek_alergi(pasien, item) = 1
+
+LIVE: POST /api/v1/pasien/:id/alergi BIDAN ALERGI_OBAT without item_id
+  http=422 ERR-VAL-01 "item_id wajib diisi untuk kategori ALERGI_OBAT"
+
+LIVE: POST /api/v1/pasien/:id/alergi BIDAN KEHAMILAN_RISTI with item_id
+  http=422 ERR-VAL-01 "item_id hanya boleh diisi untuk kategori ALERGI_OBAT"
+
+LIVE: POST /api/v1/pasien/:id/alergi as ADMIN
+  http=403 ERR-AUTH-03
+
+LIVE: POST /api/v1/pasien/:id/rme/detail as BIDAN after allergy
+  http=200 has_red_flag=true, alergi_aktif length=1,
+  pasien.jumlah_red_flag_aktif=1
+
+LIVE: POST /api/v1/pasien/:id/red-flag/konfirmasi as BIDAN
+  http=200 {"confirmed":true,"confirmed_at":"2026-11-14T02:34:52.000Z"}
+  audit_logs: aksi=RED_FLAG_CONFIRMED entitas=pasien entitas_id=<pasien_id>
+              user_ref=bidan ip=::ffff:127.0.0.1 created_at date=2026-11-14
+              ISJSON(nilai_baru)=1, snapshot starts
+              [{"alergi_id":"2A3C433E-...","kategori":"ALERGI_OBAT",...}]
+
+LIVE: POST /api/v1/pasien/:id/red-flag/konfirmasi as ADMIN
+  http=403 ERR-AUTH-03
+
+LIVE: PATCH /api/v1/alergi/:id BIDAN {"is_active":false}
+  http=200 is_active=false updated_at=2026-11-14T02:34:52.000Z
+  dbo.fn_cek_alergi(pasien, item) = 0
+
+LIVE: PATCH /api/v1/alergi/00000000-0000-4000-8000-000000000000 as BIDAN
+  http=404 ERR-RME-01 "Alergi atau kondisi tidak ditemukan"
+
+LIVE: PATCH /api/v1/alergi/:id as ADMIN
+  http=403 ERR-AUTH-03
+
+LIVE: unknown pasien
+  POST /api/v1/pasien/00000000-.../rme/detail        http=404 ERR-RME-01 "Pasien tidak ditemukan"
+  POST /api/v1/pasien/00000000-.../alergi            http=404 ERR-RME-01 "Pasien tidak ditemukan"
+  POST /api/v1/pasien/00000000-.../red-flag/konfirmasi http=404 ERR-RME-01 "Pasien tidak ditemukan"
+
+AUDIT SUMMARY before cleanup (entitas_id = scratch pasien_id)
+  CREATE|1 (pasien trigger), VIEW_RME|2 (two successful detail calls),
+  RED_FLAG_CONFIRMED|1 (valid JSON, today)
+  alergi_kondisi trigger rows keyed by alergi_id: CREATE|1, UPDATE|1
+
+CLEANUP / ROLLBACK
+  audit_logs is append-only (trg_audit_logs_immutable), so scratch audit rows cannot be
+  deleted under the trigger. Cleanup temporarily disabled the trigger, deleted the
+  scratch alergi row + patient row + their audit rows, then re-enabled the trigger.
+  No schema file was modified.
+  audit_pasien=0
+  audit_alergi=0
+  pasien_count=1 (seed patient only)
+  alergi_scratch=0
+  sys.triggers trg_audit_logs_immutable is_disabled=0
+  server stopped (PID 53303), port 4118 closed
+
+COMMIT
+  feat(backend): implement RME and allergy endpoints
+  (backend/src/modules/rme/ + backend/src/routes/alergi.routes.ts +
+   backend/src/routes/pasien.routes.ts only)

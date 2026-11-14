@@ -1,0 +1,34 @@
+=== Git Log (Last 4) ===
+6c0716b chore(root): ignore codegraph symlink
+0135dd0 chore(root): cleanup redundant gitignore entry
+45ba773 docs: add TSD source material
+4ecf48a chore(root): initialize git and ignore build/env artifacts
+
+=== Current Commit Detail ===
+6c0716b chore(root): ignore codegraph symlink
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+=== .gitignore Content ===
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+.codegraph/
+.codegraph
+.omo/
+
+=== Git Status (Must be empty) ===
+STDOUT_START
+STDOUT_END
+
+=== Check Ignore ===
+.gitignore:3:.env	.env
+.gitignore:2:dist/	dist/x
+.gitignore:9:.codegraph	.codegraph
+
+=== Docker Compose Check ===
+OK

@@ -1,0 +1,135 @@
+TASK 10 EVIDENCE - backend/database/04_triggers.sql (15 audit triggers + 1 immutability guard)
+Captured: 2026-11-13 16:20 WIB
+
+NOTE: host has no sqlcmd; sqlcmd executed inside the live container 'sql_server_pikachen'
+(/opt/mssql-tools18/bin/sqlcmd, -d PraktikBidan). Password read from container env
+MSSQL_SA_PASSWORD and never printed.
+
+=== 1) FILE ===
+backend/database/04_triggers.sql
+sha256 485f06901c1b46ce1f2d254f687df8424487bff4c1b6fc4c1c9294eb8a75696a
+triggers created (16 statements, CREATE OR ALTER):
+  - trg_audit_users
+  - trg_audit_pasien
+  - trg_audit_sesi_praktik
+  - trg_audit_layanan
+  - trg_audit_reservasi
+  - trg_audit_kunjungan
+  - trg_audit_resep_item
+  - trg_audit_alergi_kondisi
+  - trg_audit_item_inventaris
+  - trg_audit_riwayat_stok
+  - trg_audit_riwayat_harga
+  - trg_audit_tagihan
+  - trg_audit_tagihan_rincian
+  - trg_audit_pembayaran
+  - trg_audit_konten_publik
+  - trg_audit_logs_immutable
+
+=== 2) IDEMPOTENT EXECUTION: RUN 1 + RUN 2 (both -b) ===
+$ docker exec -i sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P <pwd> -d PraktikBidan -b < backend/database/04_triggers.sql
+--- run1 ---
+Changed database context to 'PraktikBidan'.
+exit=0
+--- run2 ---
+Changed database context to 'PraktikBidan'.
+exit=0
+--- counts ---
+semua_trg_audit
+---------------
+16
+dml_audit
+---------
+15
+immutable
+---------
+1
+trg tabel instead_of
+--- ----- ----------
+trg_audit_alergi_kondisi alergi_kondisi 0
+trg_audit_item_inventaris item_inventaris 0
+trg_audit_konten_publik konten_publik 0
+trg_audit_kunjungan kunjungan 0
+trg_audit_layanan layanan 0
+trg_audit_logs_immutable audit_logs 0
+trg_audit_pasien pasien 0
+trg_audit_pembayaran pembayaran 0
+trg_audit_resep_item resep_item 0
+trg_audit_reservasi reservasi 0
+trg_audit_riwayat_harga riwayat_harga 0
+trg_audit_riwayat_stok riwayat_stok 0
+trg_audit_sesi_praktik sesi_praktik 0
+trg_audit_tagihan tagihan 0
+trg_audit_tagihan_rincian tagihan_rincian 0
+trg_audit_users users 0
+fk on_delete
+-- ---------
+FK_audit_logs_users SET_NULL
+
+=== 3) REAL QA (single sqlcmd batch, transaction rolled back) ===
+$ docker exec -i sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P <pwd> -d PraktikBidan -b -W < /tmp/qa10.sql
+(session context set with EXEC sp_set_session_context @key=N'user_id' / N'ip')
+
+QA 1  INSERT + UPDATE dbo.users -> aksi CREATE then UPDATE, ISJSON(nilai_baru)=1,
+      user_ref=qa_t10, ip_address=127.0.0.1, exactly 1 UPDATE row, entitas_id = the user UUID,
+      no password_hash / no password value in nilai_baru.
+QA 2  multi-row UPDATE layanan SET is_active = is_active on 2 rows -> 2 audit rows (one per PK).
+QA 3  UPDATE audit_logs -> raises 'audit_logs bersifat append-only' severity 16, 0 rows after.
+QA 4  DELETE FROM audit_logs -> raises 'audit_logs bersifat append-only' severity 16, 0 rows after.
+Final counts: 0 audit_logs / 0 users / 0 layanan -> all QA data rolled back.
+
+n aksi entitas entitas_id user_ref ip_address isjson_baru nilai_baru
+- ---- ------- ---------- -------- ---------- ----------- ----------
+1 CREATE users 1ABF615C-235E-465B-ABB1-0E233F4E9644 qa_t10 127.0.0.1 1 {"user_id":"1ABF615C-235E-465B-ABB1-0E233F4E9644","username":"qa_t10","nama_lengkap":"QA Task 10","role":"BIDAN","no_telepon":"081200000001","is_active":true,"created_at":"2026-11-13T09:17:37"}
+2 UPDATE users 1ABF615C-235E-465B-ABB1-0E233F4E9644 qa_t10 127.0.0.1 1 {"user_id":"1ABF615C-235E-465B-ABB1-0E233F4E9644","username":"qa_t10","nama_lengkap":"QA Task 10 Updated","role":"BIDAN","no_telepon":"081200000001","is_active":true,"created_at":"2026-11-13T09:17:37"}
+jumlah_baris_update
+-------------------
+1
+cek_password_hash
+-----------------
+password_hash tidak ada di nilai_baru
+cek_entitas_id
+--------------
+OK
+audit_rows_layanan_update
+-------------------------
+2
+audit_logs_setelah_rollback
+---------------------------
+0
+cek_update_audit_logs pesan_error severity
+--------------------- ----------- --------
+UPDATE audit_logs ditolak audit_logs bersifat append-only 16
+audit_logs_setelah_update_ditolak
+---------------------------------
+0
+cek_delete_audit_logs pesan_error severity
+--------------------- ----------- --------
+DELETE audit_logs ditolak audit_logs bersifat append-only 16
+audit_logs_setelah_delete_ditolak
+---------------------------------
+0
+users_tersisa
+-------------
+0
+layanan_tersisa
+---------------
+0
+exit=0
+
+=== 4) DEVIATION FROM SPEC: INSTEAD OF -> AFTER (documented in the file) ===
+First attempt used exactly `INSTEAD OF UPDATE, DELETE`. SQL Server 2025 refuses it:
+
+  Msg 2113, Level 16, State 1, Server sql-server-zyy, Procedure trg_audit_logs_immutable, Line 7
+  Cannot create INSTEAD OF DELETE or INSTEAD OF UPDATE TRIGGER 'trg_audit_logs_immutable'
+  on table 'dbo.audit_logs'. This is because the table has a FOREIGN KEY with cascading
+  DELETE or UPDATE.
+
+The cause is FK_audit_logs_users (users FK ON DELETE SET NULL, verified in section 2).
+The trigger is therefore AFTER UPDATE, DELETE with RAISERROR(...) + ROLLBACK TRANSACTION,
+which yields the same guarantee: no audit row can be changed or removed (QA 3 and QA 4).
+Changing the FK to enable INSTEAD OF syntax would touch 01_schema.sql and is out of scope.
+
+=== 5) EXCLUSIONS (commented in the file header) ===
+otp_reset, log_notifikasi, audit_logs are intentionally not audited by DML triggers
+(OTP hashes, WhatsApp payloads, and the audit table itself).

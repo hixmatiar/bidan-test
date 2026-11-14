@@ -1,0 +1,66 @@
+=== task 4: backend infrastructure (env, db, jwt, password, otp, wa) ===
+date: 2026-11-13 16:15:29 WIB
+cwd: /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend
+
+--- 1. npx tsc --noEmit ---
+exit code: 0
+
+--- 2. missing env fail-fast (env -i, no DB vars) ---
+/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/src/config/env.ts:56
+  throw new Error(`Invalid environment configuration -> ${details}`);
+        ^
+
+Error: Invalid environment configuration -> DB_HOST: Required; DB_PORT: Expected number, received nan; DB_NAME: Required; DB_USER: Required; DB_PASSWORD: Required; JWT_SECRET: Required
+    at <anonymous> (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/src/config/env.ts:56:9)
+    at Object.<anonymous> (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/src/config/env.ts:59:27)
+    at Module._compile (node:internal/modules/cjs/loader:1871:14)
+    at Object.transformer (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/tsx/dist/register-B1c7OH6V.cjs:22:2188)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:372:15)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:244:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+
+Node.js v24.18.0
+exit code: 1
+
+--- 3. jwt round-trip + expiry (1s ttl, wait 2s) ---
+roundtrip: {"user_id":"u1","username":"bidan","role":"BIDAN"}
+expired code: ERR-AUTH-04
+invalid code: ERR-AUTH-02
+exit code: 0
+
+--- 4. WA failure (WA_API_URL=http://127.0.0.1:1) ---
+wa error code: ERR-NTF-01 | message: Pengiriman WhatsApp gagal: timeout atau koneksi terputus
+real 0.40
+user 0.36
+sys 0.09
+exit code: 0
+
+--- 5. bonus: otp constant-time compare + bcrypt cost ---
+otp: 323096 | match: true | wrong: false
+bcrypt cost: 12 | compare: true
+exit code: 0
+
+=== end ===
+
+
+=== task-4 dbfix: acquire/release scoped to per-request pool ===
+date: 2026-11-13T09:18:47Z
+
+--- 1. typecheck: cd backend && npx tsc --noEmit ---
+exit code: 0
+
+--- 2. acquire() rejects on unavailable DB (DB_HOST=127.0.0.1 DB_PORT=1) ---
+script: flatten error chain, require ECONNREFUSED and elapsed < 12000ms
+rejected in 6 ms
+error: ESOCKET Failed to connect to 127.0.0.1:1 - Could not connect (sequence)
+ECONNREFUSED present: true
+no hang > 12s: true
+exit code: 0
+
+--- 3. git diff --stat ---
+ backend/src/utils/db.ts | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+=== end task-4 dbfix ===

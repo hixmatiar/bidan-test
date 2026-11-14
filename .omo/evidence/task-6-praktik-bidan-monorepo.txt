@@ -1,0 +1,220 @@
+Task 6 - route index, module routers, controllers and route audit
+Repository: /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan
+Date: 2026-11-13 16:27:57 WIB
+
+=== 1. npx tsc --noEmit ===
+exit=0
+
+=== 2. npm run build ===
+
+> praktik-bidan-backend@1.0.0 build
+> tsc && tsc-alias
+
+exit=0
+
+=== 3. npm run audit:routes (happy path) ===
+
+> praktik-bidan-backend@1.0.0 audit:routes
+> tsx src/scripts/route-audit.ts
+
+DELETE /api/v1/konten/:id
+PATCH /api/v1/alergi/:id
+PATCH /api/v1/inventaris/:id
+PATCH /api/v1/konten/:id
+PATCH /api/v1/kunjungan/:id/catatan
+PATCH /api/v1/reservasi/:id/batal
+PATCH /api/v1/reservasi/:id/jadwal
+PATCH /api/v1/reservasi/:id/status
+PATCH /api/v1/sesi/:id
+POST /api/v1/audit-logs/list
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/refresh
+POST /api/v1/auth/reset/request
+POST /api/v1/auth/reset/verify
+POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list
+POST /api/v1/harga/list
+POST /api/v1/inventaris
+POST /api/v1/inventaris/:id/restock
+POST /api/v1/inventaris/:id/riwayat/list
+POST /api/v1/inventaris/list
+POST /api/v1/keuangan/rekap/list
+POST /api/v1/konten
+POST /api/v1/konten/list
+POST /api/v1/kunjungan/:id/tagihan/detail
+POST /api/v1/laporan/export
+POST /api/v1/laporan/jam-tersibuk/list
+POST /api/v1/laporan/perbandingan/list
+POST /api/v1/laporan/ringkasan/list
+POST /api/v1/laporan/tren-layanan/list
+POST /api/v1/notifikasi/:id/kirim-ulang
+POST /api/v1/notifikasi/log/list
+POST /api/v1/pasien/:id/alergi
+POST /api/v1/pasien/:id/kunjungan
+POST /api/v1/pasien/:id/red-flag/konfirmasi
+POST /api/v1/pasien/:id/rme/detail
+POST /api/v1/pasien/:id/rme/export
+POST /api/v1/pasien/identitas/list
+POST /api/v1/pasien/list
+POST /api/v1/pasien/walk-in
+POST /api/v1/public/konten/list
+POST /api/v1/public/layanan/list
+POST /api/v1/public/pasien/cek
+POST /api/v1/public/reservasi
+POST /api/v1/public/sesi/list
+POST /api/v1/reservasi/list
+POST /api/v1/sesi
+POST /api/v1/sesi/list
+POST /api/v1/tagihan/:id/pembayaran
+POST /api/v1/tagihan/list
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+exit=0
+
+=== 4. grep -rn ".get(" backend/src/routes backend/src/controllers ===
+grep_exit=1 (1 = no matches)
+
+=== 5. Negative QA: temporary router.get('/__probe') in auth.routes.ts ===
+--- audit output with probe registered ---
+
+> praktik-bidan-backend@1.0.0 audit:routes
+> tsx src/scripts/route-audit.ts
+
+DELETE /api/v1/konten/:id
+GET /api/v1/auth/__probe
+PATCH /api/v1/alergi/:id
+PATCH /api/v1/inventaris/:id
+PATCH /api/v1/konten/:id
+PATCH /api/v1/kunjungan/:id/catatan
+PATCH /api/v1/reservasi/:id/batal
+PATCH /api/v1/reservasi/:id/jadwal
+PATCH /api/v1/reservasi/:id/status
+PATCH /api/v1/sesi/:id
+POST /api/v1/audit-logs/list
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/refresh
+POST /api/v1/auth/reset/request
+POST /api/v1/auth/reset/verify
+POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list
+POST /api/v1/harga/list
+POST /api/v1/inventaris
+POST /api/v1/inventaris/:id/restock
+POST /api/v1/inventaris/:id/riwayat/list
+POST /api/v1/inventaris/list
+POST /api/v1/keuangan/rekap/list
+POST /api/v1/konten
+POST /api/v1/konten/list
+POST /api/v1/kunjungan/:id/tagihan/detail
+POST /api/v1/laporan/export
+POST /api/v1/laporan/jam-tersibuk/list
+POST /api/v1/laporan/perbandingan/list
+POST /api/v1/laporan/ringkasan/list
+POST /api/v1/laporan/tren-layanan/list
+POST /api/v1/notifikasi/:id/kirim-ulang
+POST /api/v1/notifikasi/log/list
+POST /api/v1/pasien/:id/alergi
+POST /api/v1/pasien/:id/kunjungan
+POST /api/v1/pasien/:id/red-flag/konfirmasi
+POST /api/v1/pasien/:id/rme/detail
+POST /api/v1/pasien/:id/rme/export
+POST /api/v1/pasien/identitas/list
+POST /api/v1/pasien/list
+POST /api/v1/pasien/walk-in
+POST /api/v1/public/konten/list
+POST /api/v1/public/layanan/list
+POST /api/v1/public/pasien/cek
+POST /api/v1/public/reservasi
+POST /api/v1/public/sesi/list
+POST /api/v1/reservasi/list
+POST /api/v1/sesi
+POST /api/v1/sesi/list
+POST /api/v1/tagihan/:id/pembayaran
+POST /api/v1/tagihan/list
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 52
+GET 1
+negative_exit=1 (asserted by script; TOTAL 52, GET 1)
+
+--- audit output after removing the probe ---
+
+> praktik-bidan-backend@1.0.0 audit:routes
+> tsx src/scripts/route-audit.ts
+
+DELETE /api/v1/konten/:id
+PATCH /api/v1/alergi/:id
+PATCH /api/v1/inventaris/:id
+PATCH /api/v1/konten/:id
+PATCH /api/v1/kunjungan/:id/catatan
+PATCH /api/v1/reservasi/:id/batal
+PATCH /api/v1/reservasi/:id/jadwal
+PATCH /api/v1/reservasi/:id/status
+PATCH /api/v1/sesi/:id
+POST /api/v1/audit-logs/list
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/refresh
+POST /api/v1/auth/reset/request
+POST /api/v1/auth/reset/verify
+POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list
+POST /api/v1/harga/list
+POST /api/v1/inventaris
+POST /api/v1/inventaris/:id/restock
+POST /api/v1/inventaris/:id/riwayat/list
+POST /api/v1/inventaris/list
+POST /api/v1/keuangan/rekap/list
+POST /api/v1/konten
+POST /api/v1/konten/list
+POST /api/v1/kunjungan/:id/tagihan/detail
+POST /api/v1/laporan/export
+POST /api/v1/laporan/jam-tersibuk/list
+POST /api/v1/laporan/perbandingan/list
+POST /api/v1/laporan/ringkasan/list
+POST /api/v1/laporan/tren-layanan/list
+POST /api/v1/notifikasi/:id/kirim-ulang
+POST /api/v1/notifikasi/log/list
+POST /api/v1/pasien/:id/alergi
+POST /api/v1/pasien/:id/kunjungan
+POST /api/v1/pasien/:id/red-flag/konfirmasi
+POST /api/v1/pasien/:id/rme/detail
+POST /api/v1/pasien/:id/rme/export
+POST /api/v1/pasien/identitas/list
+POST /api/v1/pasien/list
+POST /api/v1/pasien/walk-in
+POST /api/v1/public/konten/list
+POST /api/v1/public/layanan/list
+POST /api/v1/public/pasien/cek
+POST /api/v1/public/reservasi
+POST /api/v1/public/sesi/list
+POST /api/v1/reservasi/list
+POST /api/v1/sesi
+POST /api/v1/sesi/list
+POST /api/v1/tagihan/:id/pembayaran
+POST /api/v1/tagihan/list
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+recovery_exit=0 (TOTAL 51, GET 0)
+
+=== 6. Probe removal check ===
+NO_PROBE_REMAINS
+
+=== 7. Route count by module (from audit) ===
+   1 alergi
+   1 audit-logs
+   5 auth
+   3 harga
+   5 inventaris
+   1 keuangan
+   4 konten
+   2 kunjungan
+   5 laporan
+   2 notifikasi
+   8 pasien
+   5 public
+   4 reservasi
+   3 sesi
+   2 tagihan
+
+TOTAL=51

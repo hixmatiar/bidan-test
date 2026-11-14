@@ -1,0 +1,161 @@
+Task 12 - Implement Auth module (endpoints 1-5)
+Date: 2026-11-14
+Repo: /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan
+Plan checkbox: 12 (POST /auth/login, /auth/logout, /auth/refresh, /auth/reset/request, /auth/reset/verify)
+
+Changed files (commit: feat(backend): implement authentication and OTP reset)
+- backend/src/modules/auth/auth.validators.ts (new)
+- backend/src/modules/auth/auth.repository.ts (new)
+- backend/src/modules/auth/auth.service.ts (new)
+- backend/src/modules/auth/auth.controller.ts (new)
+- backend/src/routes/auth.routes.ts (modified: real handlers + zod validate, whole-router publicRateLimiter + dbSessionContext)
+
+Verification 1 - tsc + build (cd backend)
+$ npx tsc --noEmit && npm run build
+> praktik-bidan-backend@1.0.0 build
+> tsc && tsc-alias
+BUILD_OK
+exit 0
+
+Verification 2 - route audit (cd backend)
+$ npm run audit:routes
+> praktik-bidan-backend@1.0.0 audit:routes
+> tsx src/scripts/route-audit.ts
+
+DELETE /api/v1/konten/:id
+PATCH /api/v1/alergi/:id
+PATCH /api/v1/inventaris/:id
+PATCH /api/v1/konten/:id
+PATCH /api/v1/kunjungan/:id/catatan
+PATCH /api/v1/reservasi/:id/batal
+PATCH /api/v1/reservasi/:id/jadwal
+PATCH /api/v1/reservasi/:id/status
+PATCH /api/v1/sesi/:id
+POST /api/v1/audit-logs/list
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/refresh
+POST /api/v1/auth/reset/request
+POST /api/v1/auth/reset/verify
+POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list
+POST /api/v1/harga/list
+POST /api/v1/inventaris
+POST /api/v1/inventaris/:id/restock
+POST /api/v1/inventaris/:id/riwayat/list
+POST /api/v1/inventaris/list
+POST /api/v1/keuangan/rekap/list
+POST /api/v1/konten
+POST /api/v1/konten/list
+POST /api/v1/kunjungan/:id/tagihan/detail
+POST /api/v1/laporan/export
+POST /api/v1/laporan/jam-tersibuk/list
+POST /api/v1/laporan/perbandingan/list
+POST /api/v1/laporan/ringkasan/list
+POST /api/v1/laporan/tren-layanan/list
+POST /api/v1/notifikasi/:id/kirim-ulang
+POST /api/v1/notifikasi/log/list
+POST /api/v1/pasien/:id/alergi
+POST /api/v1/pasien/:id/kunjungan
+POST /api/v1/pasien/:id/red-flag/konfirmasi
+POST /api/v1/pasien/:id/rme/detail
+POST /api/v1/pasien/:id/rme/export
+POST /api/v1/pasien/identitas/list
+POST /api/v1/pasien/list
+POST /api/v1/pasien/walk-in
+POST /api/v1/public/konten/list
+POST /api/v1/public/layanan/list
+POST /api/v1/public/pasien/cek
+POST /api/v1/public/reservasi
+POST /api/v1/public/sesi/list
+POST /api/v1/reservasi/list
+POST /api/v1/sesi
+POST /api/v1/sesi/list
+POST /api/v1/tagihan/:id/pembayaran
+POST /api/v1/tagihan/list
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+exit 0
+
+Verification 3 - live QA against SQL Server container sql_server_pikachen
+Server: PORT=4101 DB_HOST=127.0.0.1 DB_PORT=1433 DB_NAME=PraktikBidan DB_USER=sa
+        JWT_SECRET=test WA_API_URL=http://127.0.0.1:1 WA_API_TOKEN=x
+        (DB_PASSWORD read from `docker inspect ... MSSQL_SA_PASSWORD`, never printed)
+Startup log: Praktik Bidan API listening on port 4101 (development)
+
+$ .omo/scratch/qa.sh
+=== 1. login bidan (correct) ===
+{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJpZGFuIiwicm9sZSI6IkJJREFOIiwiaWF0IjoxNzk0NjIyODAzLCJleHAiOjE3OTQ2MjQ2MDMsInN1YiI6IjNEQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.AcEY7l6MsmJo7QZX_J6Sas0R4u0XAsJQwf2q7z0wIHc","expires_in":1800,"user":{"user_id":"3DCB423E-F36B-1410-864C-00CA0D54CA7B","username":"bidan","role":"BIDAN","nama_lengkap":"Bidan Siti Rahmawati"}},"message":"Login berhasil"}
+HTTP_STATUS:200
+=== 2. refresh with token ===
+{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJpZGFuIiwicm9sZSI6IkJJREFOIiwiaWF0IjoxNzk0NjIyODAzLCJleHAiOjE3OTQ2MjQ2MDMsInN1YiI6IjNEQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.AcEY7l6MsmJo7QZX_J6Sas0R4u0XAsJQwf2q7z0wIHc","expires_in":1800},"message":"Token diperbarui"}
+HTTP_STATUS:200
+=== 3. logout with token ===
+{"status":"success","data":null,"message":"Logout berhasil"}
+HTTP_STATUS:200
+=== 4. missing token on /logout ===
+{"status":"error","error_code":"ERR-AUTH-02","message":"Token tidak ada atau tidak valid","errors":[]}
+HTTP_STATUS:401
+=== 5. wrong password ===
+{"status":"error","error_code":"ERR-AUTH-01","message":"Username atau password salah","errors":[]}
+HTTP_STATUS:401
+=== 6. reset failed_attempts/lock before the 5-attempt run ===
+
+(1 rows affected)
+=== 7. five consecutive wrong passwords ===
+--- wrong attempt 1 ---
+{"status":"error","error_code":"ERR-AUTH-01","message":"Username atau password salah","errors":[]}
+HTTP_STATUS:401
+--- wrong attempt 2 ---
+{"status":"error","error_code":"ERR-AUTH-01","message":"Username atau password salah","errors":[]}
+HTTP_STATUS:401
+--- wrong attempt 3 ---
+{"status":"error","error_code":"ERR-AUTH-01","message":"Username atau password salah","errors":[]}
+HTTP_STATUS:401
+--- wrong attempt 4 ---
+{"status":"error","error_code":"ERR-AUTH-01","message":"Username atau password salah","errors":[]}
+HTTP_STATUS:401
+--- wrong attempt 5 ---
+{"status":"error","error_code":"ERR-LOCK-01","message":"Akun terkunci selama 15 menit","errors":[]}
+HTTP_STATUS:423
+=== 8. sixth attempt with CORRECT password ===
+{"status":"error","error_code":"ERR-LOCK-01","message":"Akun terkunci selama 15 menit","errors":[]}
+HTTP_STATUS:423
+=== 9. clear lock and failed_attempts (restore seed state) ===
+
+(1 rows affected)
+bidan|0|NULL
+
+(1 rows affected)
+=== 10. reset/request existing username ===
+{"status":"success","data":null,"message":"Jika username terdaftar, kode OTP reset kata sandi telah dikirim melalui WhatsApp"}
+HTTP_STATUS:200
+=== 11. reset/request non-existing username ===
+{"status":"success","data":null,"message":"Jika username terdaftar, kode OTP reset kata sandi telah dikirim melalui WhatsApp"}
+HTTP_STATUS:200
+=== 12. log_notifikasi OTP rows ===
+243C433E-F36B-1410-864D-00CA0D54CA7B|OTP|081234567801|GAGAL|NULL|Kode OTP reset kata sandi Praktik Bidan: 771754. B
+FF3B433E-F36B-1410-864D-00CA0D54CA7B|OTP|081234567801|GAGAL|NULL|Kode OTP reset kata sandi Praktik Bidan: 322322. B
+
+(2 rows affected)
+=== 13. final login after restore ===
+{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJpZGFuIiwicm9sZSI6IkJJREFOIiwiaWF0IjoxNzk0NjIyODA4LCJleHAiOjE3OTQ2MjQ2MDgsInN1YiI6IjNEQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.CteJYEgwP09pIVSL_7idDKW4wSRjllkyymi42_5UJ54","expires_in":1800,"user":{"user_id":"3DCB423E-F36B-1410-864C-00CA0D54CA7B","username":"bidan","role":"BIDAN","nama_lengkap":"Bidan Siti Rahmawati"}},"message":"Login berhasil"}
+HTTP_STATUS:200
+
+QA result: PASS
+- login 200 + data.token; refresh 200 new token; logout 200
+- wrong password 401 ERR-AUTH-01
+- 5th consecutive failure 423 ERR-LOCK-01; 6th attempt with correct password 423 ERR-LOCK-01
+- lock cleared afterwards: failed_attempts=0, locked_until=NULL, login works again
+- missing token 401 ERR-AUTH-02
+- reset/request returns identical 200 + message for existing and non-existing username
+- log_notifikasi OTP row written with status GAGAL (WA endpoint http://127.0.0.1:1 unreachable), request still succeeds
+- token only in JSON body, no cookies set
+
+Cleanup
+- QA server (PID 51565) stopped with SIGTERM; port 4101 free; no dist/server.js process left.
+- QA scratch files kept under .omo/scratch (gitignored); .omo/ is in .gitignore so git status shows no scratch files.
+
+Risks / notes
+- reset/verify was verified statically (latest unused unexpired OTP hash compared with bcrypt, then password updated and lock cleared); the scripted live QA did not change the seeded password.
+- The public rate limiter (RATE_LIMIT_PUBLIC, 100/min from backend/.env) applies to the whole auth router as required; QA stayed under the limit.

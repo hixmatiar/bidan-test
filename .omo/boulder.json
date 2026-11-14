@@ -1,0 +1,84 @@
+{
+  "schema_version": 2,
+  "active_work_id": "praktik-bidan-monorepo",
+  "works": {
+    "praktik-bidan-monorepo": {
+      "work_id": "praktik-bidan-monorepo",
+      "active_plan": ".omo/plans/praktik-bidan-monorepo.md",
+      "plan_name": "praktik-bidan-monorepo",
+      "session_ids": [
+        "opencode:ses_e2c4a89cfffelUbphya5LfGMXT"
+      ],
+      "status": "active",
+      "worktree_path": null,
+      "started_at": "2026-11-13T08:46:19Z",
+      "delivery_mode": "direct",
+      "session_origins": {},
+      "task_sessions": {
+        "todo:1": {
+          "task_key": "todo:1",
+          "task_label": "1",
+          "task_title": "Create root `.gitignore` and document the local SQL Server 2025 dev target",
+          "session_id": "opencode:ses_e2be2b8b8ffege4yUAIkC2lUQS",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-11-13T08:47:53.233Z",
+          "status": "completed",
+          "updated_at": "2026-11-13T09:00:38.982Z",
+          "ended_at": "2026-11-13T09:00:38.982Z",
+          "elapsed_ms": 765749
+        },
+        "todo:2": {
+          "task_key": "todo:2",
+          "task_label": "2",
+          "task_title": "Create `backend/package.json`, `backend/tsconfig.json`, `backend/.env.example`",
+          "session_id": "opencode:ses_e2bdc5e73ffeIEbGBdMO1uLK6Q",
+          "agent": "Sisyphus-Junior",
+          "category": "quick",
+          "updated_at": "2026-11-13T09:04:56.464Z",
+          "started_at": "2026-11-13T09:04:25.223Z",
+          "status": "completed",
+          "ended_at": "2026-11-13T09:04:56.464Z",
+          "elapsed_ms": 31241
+        }
+      },
+      "updated_at": "2026-11-13T09:04:56.464Z"
+    }
+  },
+  "session_ids": [
+    "opencode:ses_e2c4a89cfffelUbphya5LfGMXT"
+  ],
+  "session_origins": {},
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Create root `.gitignore` and document the local SQL Server 2025 dev target",
+      "session_id": "opencode:ses_e2be2b8b8ffege4yUAIkC2lUQS",
+      "agent": "Sisyphus-Junior",
+      "started_at": "2026-11-13T08:47:53.233Z",
+      "status": "completed",
+      "updated_at": "2026-11-13T09:00:38.982Z",
+      "ended_at": "2026-11-13T09:00:38.982Z",
+      "elapsed_ms": 765749
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "Create `backend/package.json`, `backend/tsconfig.json`, `backend/.env.example`",
+      "session_id": "opencode:ses_e2bdc5e73ffeIEbGBdMO1uLK6Q",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-11-13T09:04:56.464Z",
+      "started_at": "2026-11-13T09:04:25.223Z",
+      "status": "completed",
+      "ended_at": "2026-11-13T09:04:56.464Z",
+      "elapsed_ms": 31241
+    }
+  },
+  "active_plan": ".omo/plans/praktik-bidan-monorepo.md",
+  "plan_name": "praktik-bidan-monorepo",
+  "status": "active",
+  "started_at": "2026-11-13T08:46:19Z",
+  "updated_at": "2026-11-13T09:04:56.464Z",
+  "worktree_path": null
+}

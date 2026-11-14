@@ -1,0 +1,97 @@
+=== task 5: express app, middlewares and server bootstrap ===
+date: 2026-11-13 16:21:27 WIB
+cwd: /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend
+
+--- 1. npx tsc --noEmit && npm run build ---
+
+> praktik-bidan-backend@1.0.0 build
+> tsc && tsc-alias
+
+exit code: 0
+
+--- 2. boot with dummy DB env (must not connect at boot) ---
+Praktik Bidan API listening on port 4100 (development)
+
+--- 3. curl malformed JSON: POST /api/v1/nope -d '{' ---
+HTTP/1.1 400 Bad Request
+Content-Security-Policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Content-Type: application/json; charset=utf-8
+Content-Length: 85
+ETag: W/"55-+C1miwrVZobvIZPalj7lJyim1gE"
+Date: Fri, 13 Nov 2026 09:21:31 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"status":"error","error_code":"ERR-VAL-04","message":"JSON tidak valid","errors":[]}
+--- 4. grep -rn "app.get(" backend/src ---
+no matches
+
+--- 5. curl unknown path: GET /api/v1/does-not-exist ---
+HTTP/1.1 404 Not Found
+Content-Security-Policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Vary: Origin
+Content-Type: application/json; charset=utf-8
+Content-Length: 93
+ETag: W/"5d-Dmq6bL/Sqny6MZ1XVr69Yc4mg4U"
+Date: Fri, 13 Nov 2026 09:21:31 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"status":"error","error_code":"ERR-SYS-01","message":"Endpoint tidak ditemukan","errors":[]}
+
+--- 6. SIGTERM graceful shutdown ---
+EXITED_GRACEFULLY
+--- server log after SIGTERM ---
+Praktik Bidan API listening on port 4100 (development)
+SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/body-parser/lib/types/json.js:96:19)
+    at /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/body-parser/lib/read.js:146:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:227:14)
+    at invokeCallback (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/raw-body/index.js:238:16)
+    at done (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/raw-body/index.js:227:7)
+    at IncomingMessage.onEnd (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/raw-body/index.js:287:7)
+    at IncomingMessage.emit (node:events:509:28)
+    at endReadableNT (node:internal/streams/readable:1729:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+SIGTERM received, shutting down
+
+--- 7. built artifacts ---
+dist/app.js
+dist/server.js
+
+dist/jobs:
+index.js
+
+dist/middlewares:
+auth.js
+dbSession.js
+errorHandler.js
+rateLimit.js
+validate.js
+
+dist/routes:
+index.js

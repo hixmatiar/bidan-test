@@ -1,0 +1,82 @@
+TASK 24 EVIDENCE - inventory list, create and update (endpoints 32-34)
+Captured: 2026-11-14 (Asia/Jakarta)
+
+FILES
+- backend/src/modules/inventaris/inventaris.validators.ts (new)
+- backend/src/modules/inventaris/inventaris.repository.ts (new)
+- backend/src/modules/inventaris/inventaris.service.ts (new)
+- backend/src/modules/inventaris/inventaris.controller.ts (new)
+- backend/src/routes/inventaris.routes.ts (list/create/update now use the module + validate)
+- backend/src/controllers/inventaris.controller.ts (removed list/create/update stubs; restock/history stubs remain for task 25)
+
+STATIC VERIFICATION (cwd backend)
+$ npx tsc --noEmit
+exit=0 (no output)
+$ npm run build
+> tsc && tsc-alias
+exit=0
+$ npm run audit:routes
+...
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+exit=0
+
+LIVE VERIFICATION
+Host has no sqlcmd; SQL Server 2025 container 'sql_server_pikachen' on localhost:1433.
+SQL ran with: docker exec sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -d PraktikBidan
+API started on port 4124 (node dist/server.js) with real DB + signed ADMIN JWT (user_id from dbo.users).
+
+1) CREATE stock 0 + harga = 12345.67
+POST /api/v1/inventaris
+{"status":"success","data":{"item_id":"A2D3AF12-900A-4D4E-B101-571D0857CE02","nama":"QA Task24 Item","kategori":"OBAT","satuan":"tablet","stok":0,"stok_minimum":5,"tgl_kedaluwarsa":"2027-06-30T00:00:00.000Z","days_to_expiry":228,"status_stok":"HABIS","is_active":true,...},"message":"Item inventaris berhasil dibuat"}
+HTTP 200
+
+2) LIST q=QA Task24
+{"status":"success","data":[{... "status_stok":"HABIS" ...}],"message":"Berhasil","meta":{"current_page":1,"per_page":15,"total":1,"last_page":1}}
+HTTP 200
+
+3) LIST status_stok=HABIS (same item, status matches fn_status_stok)
+{"status":"success","data":[{... "status_stok":"HABIS" ...}],"meta":{"current_page":1,"per_page":15,"total":1,"last_page":1}}
+HTTP 200
+
+4) LIST invalid status_stok=RUSAK
+{"status":"error","error_code":"ERR-VAL-03","message":"Validasi filter atau paginasi gagal","errors":[{"path":"status_stok","message":"Invalid enum value. Expected 'HABIS' | 'KEDALUWARSA' | 'MENIPIS' | 'AMAN', received 'RUSAK'"}]}
+HTTP 422
+
+5) PATCH stok=10 (stok is not patchable)
+{"status":"error","error_code":"ERR-VAL-01","message":"Validasi body gagal","errors":[{"path":"root","message":"Unrecognized key(s) in object: 'stok'"}]}
+HTTP 422
+
+6) CREATE stok=-1
+{"status":"error","error_code":"ERR-VAL-01","message":"Validasi body gagal","errors":[{"path":"stok","message":"Nilai tidak boleh negatif"}]}
+HTTP 422
+
+7) PATCH unknown id 00000000-0000-0000-0000-000000000000
+{"status":"error","error_code":"ERR-INV-01","message":"Item inventaris tidak ditemukan","errors":[]}
+HTTP 404
+
+8) fn_harga_berlaku('ITEM', id, today) via SQL
+harga_berlaku  hari_ini
+12345.67       2026-11-14
+Open price row: berlaku_dari=2026-11-14, berlaku_sampai=NULL, harga=12345.67
+Stored expiry: tgl_kedaluwarsa=2027-06-30 (date-only preserved; no timezone day shift)
+
+9) Audit rows for the created item (trigger + session context)
+CREATE item_inventaris A2D3AF12-900A-4D4E-B101-571D0857CE02 user_ref=admin
+CREATE riwayat_harga    (audit nilai_baru contains A2D3AF12-900A-4D4E-B101-571D0857CE02) user_ref=admin
+
+CLEANUP
+Deleted scratch price rows then the scratch item row directly in SQL.
+$ SELECT COUNT(*) FROM dbo.item_inventaris;  -> 10
+$ SELECT COUNT(*) FROM dbo.riwayat_harga;    -> 18
+Seed counts restored.
+Audit rows are append-only: 4 rows remain for the scratch item/price (CREATE item, CREATE price,
+DELETE price, DELETE item). This is expected and acceptable per assignment.
+
+NOTES
+- Create id is generated with crypto.randomUUID() because the audit trigger on item_inventaris
+  rejects OUTPUT without INTO.
+- PATCH harga closes prior open ITEM prices at DAY-1 and inserts a new open row; same-day rows
+  are closed at today so CK_riwayat_harga_periode still holds.
+- No hard delete endpoint, no restock/history changes (task 25), no schema changes.

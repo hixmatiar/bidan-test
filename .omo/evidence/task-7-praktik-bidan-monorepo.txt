@@ -1,0 +1,74 @@
+TASK 7 EVIDENCE - database/01_schema.sql (18 tables)
+Captured: 2026-11-13 16:13:45 WIB
+
+NOTE: host has no sqlcmd (`command -v sqlcmd` empty; /opt/homebrew/bin and /opt/mssql-tools18 absent).
+SQL Server 2025 runs in Docker/OrbStack container 'sql_server_pikachen' on localhost:1433;
+sqlcmd used from inside the container: /opt/mssql-tools18/bin/sqlcmd
+Password read from container env MSSQL_SA_PASSWORD (not printed).
+
+=== 1) CONNECT + VERSION ===
+versi                                                                                                                                                                                                                                                                                                       
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Microsoft SQL Server 2025 (RTM-CU9) (KB5122048) - 17.0.5005.3 (X64) 
+	Aug 27 2026 09:30:16 
+	Copyright (C) 2025 Microsoft Corporation
+	Enterprise Developer Edition (64-bit) on Linux (Ubuntu 24.04.4 LTS) <X64>                                                                                            
+
+(1 rows affected)
+db_id 
+------
+  NULL
+
+(1 rows affected)
+
+=== 2) FIRST RUN (master, -b) ===
+$ docker exec -i sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P <pwd> -d master -b < backend/database/01_schema.sql
+exit=0
+Changed database context to 'PraktikBidan'.
+
+=== 3) VERIFY TABLES / FILTERED INDEX / COMPUTED COLUMN / CASCADE ===
+jumlah_tabel
+------------
+          18
+name                                                                                                                            
+--------------------------------------------------------------------------------------------------------------------------------
+UX_reservasi_sesi_antrean                                                                                                       
+tabel                                                                                                                            kolom_computed                                                                                                                   is_persisted
+-------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------- ------------
+tagihan_rincian                                                                                                                  subtotal                                                                                                                                    1
+name                                                                                                                             delete_referential_action_desc                              
+-------------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------
+FK_audit_logs_users                                                                                                              SET_NULL                                                    
+FK_otp_reset_users                                                                                                               CASCADE                                                     
+FK_rincian_tagihan                                                                                                               CASCADE                                                     
+
+=== 4) QA: DUPLICATE NIK, ACTIVE QUEUE, RINCIAN SHAPE, ISJSON (txn rolled back) ===
+OK: duplicate NIK rejected -> Violation of UNIQUE KEY constraint 'UQ_pasien_nik'. Cannot insert duplicate key in object 'dbo.pasien'. The duplicate key value is (1234567890123456).
+OK: duplicate active queue rejected -> Cannot insert duplicate key row in object 'dbo.reservasi' with unique index 'UX_reservasi_sesi_antrean'. The duplicate key value is (b7b40daf-fcbd-46f5-abcf-5797a54b8ebc, 1).
+OK: duplicate nomor_antrean allowed when status DIBATALKAN
+subtotal_persisted             
+-------------------------------
+                    150000.0000
+OK: rincian without item/layanan rejected -> The INSERT statement conflicted with the CHECK constraint "CK_rincian_ref". The conflict occurred in database "PraktikBidan", table "dbo.tagihan_rincian".
+OK: invalid JSON rejected -> The INSERT statement conflicted with the CHECK constraint "CK_audit_logs_baru". The conflict occurred in database "PraktikBidan", table "dbo.audit_logs", column 'nilai_baru'.
+
+=== 5) RE-RUN FOR IDEMPOTENCY (master, -b) + OBJECT COUNTS ===
+$ docker exec -i ... -d master -b < backend/database/01_schema.sql
+exit=0
+Changed database context to 'PraktikBidan'.
+jumlah_tabel
+------------
+          18
+jumlah_check
+------------
+          36
+jumlah_fk  
+-----------
+         29
+jumlah_index
+------------
+          33
+
+=== RESULT ===
+18 tables created; UX_reservasi_sesi_antrean has_filter=1; subtotal is_persisted=1;
+FK delete actions: otp_reset/tagihan_rincian CASCADE, audit_logs SET_NULL; re-run exit 0.

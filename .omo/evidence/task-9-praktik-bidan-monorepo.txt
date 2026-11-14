@@ -1,0 +1,123 @@
+=== TASK 9 EVIDENCE: 03_stored_procedures.sql ===
+date: 2026-11-14 07:44:59 WIB
+file: backend/database/03_stored_procedures.sql
+sha256: 8aed5d36ebeaa5854e46c59e31aa62ea453804089d0d4bf96b303322d5fe7e25
+
+$ docker exec -i sql_server_pikachen sqlcmd -I -C -S localhost -U sa -P "$P" -d PraktikBidan -b < backend/database/03_stored_procedures.sql   # run 1
+Changed database context to 'PraktikBidan'.
+exit=0
+
+--- run 2 (idempotent) ---
+Changed database context to 'PraktikBidan'.
+exit=0
+
+--- object counts ---
+$ SELECT COUNT(*) FROM sys.procedures WHERE name LIKE 'sp[_]%'; SELECT COUNT(*) FROM sys.types WHERE name='tvp_resep';
+sp_count   
+-----------
+          6
+
+(1 rows affected)
+tvp_count  
+-----------
+          1
+
+(1 rows affected)
+name                                                                                                                            
+--------------------------------------------------------------------------------------------------------------------------------
+sp_buat_reservasi                                                                                                               
+sp_catat_pembayaran                                                                                                             
+sp_reschedule_reservasi                                                                                                         
+sp_restock_item                                                                                                                 
+sp_simpan_kunjungan                                                                                                             
+sp_ubah_harga                                                                                                                   
+
+(6 rows affected)
+
+--- QA: kuota/payment/alergi/stok/reschedule (scratch data, ROLLBACK) ---
+=== QA-1 kuota penuh -> ERR-RSV-01 ===
+reservasi_id                         nomor_antrean estimasi_jam          
+------------------------------------ ------------- ----------------------
+8F1A178F-3572-4DB9-B9D6-0A7FA81EF7C9             1               09:00:00
+PASS ERR-RSV-01: ERR-RSV-01|Kuota sesi sudah penuh.
+=== QA-2 pembayaran melebihi sisa -> ERR-FIN-02 ===
+PASS ERR-FIN-02: ERR-FIN-02|Pembayaran melebihi sisa tagihan.
+=== QA-3 item alergi -> ERR-RME-04 ===
+PASS ERR-RME-04: ERR-RME-04|Pasien memiliki alergi terhadap salah satu item resep.
+=== QA-4 stok tidak cukup -> ERR-INV-02 ===
+FAIL: ERR-INV-01|Item inventaris tidak ditemukan.
+=== QA-5 reschedule: antrean asal 1..N + estimasi ulang ===
+reservasi_id                         nomor_antrean estimasi_jam          
+------------------------------------ ------------- ----------------------
+A82E72D2-A3F7-42E5-90C9-B2CB33248684             1               09:00:00
+reservasi_id                         nomor_antrean estimasi_jam          
+------------------------------------ ------------- ----------------------
+975D98CE-E442-432D-B5AA-097226CFC8DE             2               09:15:00
+reservasi_id                         nomor_antrean estimasi_jam          
+------------------------------------ ------------- ----------------------
+1AD8E97F-4E31-49E7-9026-28AA7F5DA067             3               09:30:00
+Antrean awal sesi asal:
+nik              nomor_antrean estimasi_jam          
+---------------- ------------- ----------------------
+9000000000000011             1               09:00:00
+9000000000000012             2               09:15:00
+9000000000000013             3               09:30:00
+reservasi_id                         nomor_antrean estimasi_jam           status              
+------------------------------------ ------------- ---------------------- --------------------
+975D98CE-E442-432D-B5AA-097226CFC8DE             1               10:00:00 MENUNGGU            
+Antrean setelah pindah (harus 1,2 dengan estimasi 09:00 / 09:15):
+nik              sesi_id                              nomor_antrean estimasi_jam          
+---------------- ------------------------------------ ------------- ----------------------
+9000000000000011 78D5055A-FC9E-4775-ABF1-3B836D1130E9             1               09:00:00
+9000000000000013 78D5055A-FC9E-4775-ABF1-3B836D1130E9             2               09:15:00
+PASS: antrean asal kontigu 1..2 dan estimasi_jam dihitung ulang
+PASS: reservasi pindah ke sesi tujuan nomor 1 estimasi 10:00
+Batalkan reservasi nomor 1 lalu cek renumber (harus 1 baris nomor 1 estimasi 09:00):
+reservasi_id                         nomor_antrean estimasi_jam           status              
+------------------------------------ ------------- ---------------------- --------------------
+A82E72D2-A3F7-42E5-90C9-B2CB33248684             1               09:00:00 DIBATALKAN          
+nik              nomor_antrean estimasi_jam          
+---------------- ------------- ----------------------
+9000000000000013             1               09:00:00
+PASS: pembatalan merapikan antrean jadi 1 baris nomor 1
+=== QA selesai, semua data scratch di-ROLLBACK ===
+exit=0
+
+--- QA tambahan: happy path kunjungan/tagihan/restock/harga (ROLLBACK) ---
+kunjungan_id                         tagihan_id                           total_tagihan       
+------------------------------------ ------------------------------------ --------------------
+8721EF69-9F47-411E-9FA5-7DF10F97DCAF 6FAD6280-DEB5-4E33-B2AB-043E4C550760             74000.00
+Rincian tagihan (harus 3 baris, total 74000):
+tipe    qty          harga_satuan         subtotal                       
+------- ------------ -------------------- -------------------------------
+LAYANAN         1.00             50000.00                      50000.0000
+ITEM            2.00              7000.00                      14000.0000
+ITEM            2.00              5000.00                      10000.0000
+PASS: tagihan 74000 dengan 3 rincian (1 layanan + 2 item teragregasi)
+PASS: stok A 10->8 dan B 5->3
+PASS: 2 baris riwayat_stok PAKAI
+tagihan_id                           total_tagihan        total_dibayar        status              
+------------------------------------ -------------------- -------------------- --------------------
+6FAD6280-DEB5-4E33-B2AB-043E4C550760             74000.00             40000.00 BELUM_LUNAS         
+PASS: cicilan pertama 40000 -> BELUM_LUNAS
+tagihan_id                           total_tagihan        total_dibayar        status              
+------------------------------------ -------------------- -------------------- --------------------
+6FAD6280-DEB5-4E33-B2AB-043E4C550760             74000.00             74000.00 LUNAS               
+PASS: pelunasan -> LUNAS
+item_id                              stok        
+------------------------------------ ------------
+0601524D-0F82-4F4A-B3C2-37103B5B5962         7.00
+PASS: restock B +4 -> stok 7 dan kedaluwarsa diperbarui
+harga_id                             berlaku_dari    
+------------------------------------ ----------------
+4014249E-2E6B-47BD-B512-E541A3686843       2026-11-21
+PASS: harga lama ditutup H-1 dan harga baru tersimpan terbuka
+=== QA happy path selesai, semua data di-ROLLBACK ===
+exit=0
+
+--- cleanup check (no QA scratch rows left) ---
+qa_users    qa_pasien   qa_layanan  qa_item    
+----------- ----------- ----------- -----------
+          0           0           0           0
+
+(1 rows affected)

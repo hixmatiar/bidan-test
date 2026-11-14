@@ -1,0 +1,108 @@
+TASK 11 EVIDENCE - backend/database/05_seed.sql (users, services, inventory, prices, sessions, content)
+Captured: 2026-11-13 (Asia/Jakarta)
+
+NOTE: host has no sqlcmd; sqlcmd executed inside the live container 'sql_server_pikachen'
+(/opt/mssql-tools18/bin/sqlcmd). Password read from container env MSSQL_SA_PASSWORD and
+never printed.
+
+=== 1) FILE ===
+backend/database/05_seed.sql
+sha256 fd36fcc8f245f2be1809a9d16029a2dd34d7d156c125398c2bb44f7fc4261c2d
+
+Contents:
+  - 2 users: bidan (BIDAN), admin (ADMIN), distinct bcrypt cost-12 hashes, nama_lengkap + no_telepon filled
+  - 8 layanan (6 KEBIDANAN, 2 UMUM) with open riwayat_harga rows
+  - 10 item_inventaris (6 OBAT, 4 PRODUK_KESEHATAN), one below stok_minimum, one expiring < 3 months,
+    each with an open ITEM price row
+  - 5 sesi_praktik at CURRENT_DATE+1..+5 (Asia/Jakarta), 08:00-12:00, durasi_per_pasien 15, kuota 12/15/10/20/16
+  - 5 konten_publik: PROFIL, LAYANAN, KONTAK, GALERI, TESTIMONI (testimonial initials only)
+  - Session context set before writes: user_id = NULL, ip = 127.0.0.1
+  - No reservations / visits / payments / audit rows inserted
+  - No plaintext credentials in the file
+
+Plaintext check:
+$ grep -c "Bidan#2026\|Admin#2026" backend/database/05_seed.sql
+0
+
+=== 2) IDEMPOTENT EXECUTION ===
+$ P=$(docker inspect sql_server_pikachen --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^MSSQL_SA_PASSWORD=//p')
+$ docker exec -i sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P "$P" -d PraktikBidan -b < backend/database/05_seed.sql
+Changed database context to 'PraktikBidan'.
+EXIT1=0
+
+--- second run ---
+Changed database context to 'PraktikBidan'.
+EXIT2=0
+
+--- third run: counts before -> after (identical) ---
+== counts before third run ==
+users|2
+layanan|8
+items|10
+sesi|5
+konten|5
+reservasi|0
+kunjungan|0
+pembayaran|0
+== third run ==
+exit=0
+== counts after third run ==
+users|2
+layanan|8
+items|10
+sesi|5
+konten|5
+reservasi|0
+kunjungan|0
+pembayaran|0
+
+Idempotency is also proven by the audit trail: exactly 2 users CREATE audit rows exist after
+three runs (a duplicate insert would have produced more).
+
+=== 3) PASSWORD HASH VERIFICATION (bcryptjs compare, hashes fetched with -h -1 -W) ===
+$ printf "SET NOCOUNT ON;\nSELECT username, password_hash FROM dbo.users ORDER BY username;\n" \
+    | docker exec -i sql_server_pikachen ... -b -h -1 -W -s '|' > /tmp/seed_users.txt
+(stored hashes fetched to a temp file; plaintext never printed by this step)
+
+$ node /tmp/verify11.js
+admin: hash_len=60 cost12=true compare=true
+bidan: hash_len=60 cost12=true compare=true
+distinct=true
+ALL_OK=true
+EXIT=0
+
+Verifier uses require('bcryptjs').compareSync(<seed credential from task>, storedHash) for both
+accounts; both return true and the two hashes differ.
+
+=== 4) OPEN PRICE COVERAGE (berlaku_sampai IS NULL) ===
+layanan_open_price|8
+item_open_price|10
+layanan_tanpa_harga|0
+item_tanpa_harga|0
+
+=== 5) INVENTORY FLAGS ===
+item_below_min|1      (Betadine 60 ml: stok 2 < stok_minimum 5)
+item_exp_3mo|1        (Amoxicillin 500 mg: tgl_kedaluwarsa = today + 2 months)
+
+=== 6) SESSION DATES (CURRENT_DATE+1..+5, Asia/Jakarta) ===
+2026-11-14|08:00:00|12:00:00|12|15
+2026-11-15|08:00:00|12:00:00|15|15
+2026-11-16|08:00:00|12:00:00|10|15
+2026-11-17|08:00:00|12:00:00|20|15
+2026-11-18|08:00:00|12:00:00|16|15
+
+=== 7) AUDIT TRIGGERS FIRE ON SEED (CREATE rows) ===
+entitas|aksi|count
+item_inventaris|CREATE|10
+konten_publik|CREATE|5
+layanan|CREATE|8
+riwayat_harga|CREATE|18
+sesi_praktik|CREATE|5
+users|CREATE|2
+
+users_audit_password_leak|0
+(no 'password' key/value anywhere in nilai_lama/nilai_baru of users audit rows; trg_audit_users
+selects an explicit column list without password_hash)
+
+=== 8) SCOPE ===
+Only backend/database/05_seed.sql was created. 01-04 SQL, TS files, plan, and .omo/ were not modified.

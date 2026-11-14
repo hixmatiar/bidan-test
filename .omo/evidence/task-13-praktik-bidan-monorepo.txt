@@ -1,0 +1,88 @@
+TASK 13 EVIDENCE - public content, services and session endpoints (6-8)
+Captured: 2026-11-14 (Asia/Jakarta)
+
+FILES
+  backend/src/modules/public/validators.ts  - zod filter schemas + parsePagination reuse (ERR-VAL-03)
+  backend/src/modules/public/repository.ts  - parameterized SQL, public column whitelist, OFFSET/FETCH
+  backend/src/modules/public/service.ts     - pagination meta + Asia/Jakarta 'today'
+  backend/src/modules/public/controller.ts  - POST handlers for the three public lists
+  backend/src/routes/public.routes.ts       - three stubs replaced; publicRateLimiter + dbSessionContext kept
+  backend/src/controllers/public.controller.ts - removed the three replaced stubs (cekPasien/buatReservasi untouched)
+
+DATABASE QUERIES
+  konten  : dbo.konten_publik WHERE is_published = 1 [AND tipe=@tipe] ORDER BY urutan, konten_id
+  layanan : dbo.layanan WHERE is_active = 1 [AND kategori=@kategori] ORDER BY nama, layanan_id
+  sesi    : dbo.v_sesi_sisa_kuota WHERE is_active = 1 AND tanggal >= today(Asia/Jakarta)
+            [AND tanggal >= @tanggal_dari] [AND tanggal <= @tanggal_sampai] ORDER BY tanggal, jam_mulai, sesi_id
+  Public whitelist: konten_id,tipe,judul,isi,media_url,urutan | layanan_id,nama,kategori,deskripsi |
+                    sesi_id,tanggal,jam_mulai,jam_selesai,kuota_maks,sisa_kuota (no is_published/is_active/timestamps)
+
+SERVER
+  P=<MSSQL_SA_PASSWORD from container env, never printed>
+  PORT=4113 DB_HOST=127.0.0.1 DB_PORT=1433 DB_NAME=PraktikBidan DB_USER=sa DB_PASSWORD="$P" \
+  JWT_SECRET=test WA_API_URL=http://127.0.0.1:1 WA_API_TOKEN=x RATE_LIMIT_PUBLIC=1000 node dist/server.js
+  (RATE_LIMIT_PUBLIC raised only for this verification run so the whole matrix fits one window)
+
+=== TSC ===
+tsc_exit=0
+=== BUILD ===
+
+> praktik-bidan-backend@1.0.0 build
+> tsc && tsc-alias
+
+build_exit=0
+=== AUDIT ===
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+=== LIVE: konten default ===
+status=success meta={"current_page": 1, "per_page": 15, "total": 5, "last_page": 1}
+fields=isi,judul,konten_id,media_url,tipe,urutan
+=== LIVE: layanan default ===
+status=success meta={"current_page": 1, "per_page": 15, "total": 8, "last_page": 1}
+fields=deskripsi,kategori,layanan_id,nama
+=== LIVE: sesi default ===
+status=success meta={"current_page": 1, "per_page": 15, "total": 5, "last_page": 1}
+fields=jam_mulai,jam_selesai,kuota_maks,sesi_id,sisa_kuota,tanggal
+tanggal=2026-11-14,2026-11-15,2026-11-16,2026-11-17,2026-11-18
+=== LIVE: per_page 500 clamps to 100 ===
+per_page=100
+=== LIVE: per_page abc ===
+HTTP 422
+{"status":"error","error_code":"ERR-VAL-03","message":"Nilai per_page harus berupa angka bulat","errors":[]}
+=== LIVE: konten tipe TESTIMONI ===
+tipe=TESTIMONI total=1
+=== LIVE: page 2 per_page 2 layanan ===
+meta={"current_page": 2, "per_page": 2, "total": 8, "last_page": 4}
+=== LIVE: sesi range ===
+tanggal=2026-11-16,2026-11-17 total=2
+=== LIVE: unpublished rows never appear ===
+-- published count before --
+5
+total=5 tipe=PROFIL,LAYANAN,KONTAK,GALERI,TESTIMONI
+-- temporarily unpublish PROFIL --
+total=4 tipe=LAYANAN,KONTAK,GALERI,TESTIMONI
+filter PROFIL total=0
+-- restore PROFIL --
+total=5 tipe=PROFIL,LAYANAN,KONTAK,GALERI,TESTIMONI
+-- unpublished rows remaining --
+0
+=== SERVER LOG ===
+Praktik Bidan API listening on port 4113 (development)
+AppError: Nilai per_page harus berupa angka bulat
+    at toInt (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/dist/utils/pagination.js:16:11)
+    at parsePagination (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/dist/utils/pagination.js:20:19)
+    at validateKontenList (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/dist/modules/public/validators.js:47:50)
+    at listKonten (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/dist/modules/public/controller.js:14:106)
+    at Layer.handle [as handle_request] (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/express/lib/router/layer.js:95:5)
+    at /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/express/lib/router/index.js:284:15
+    at router.process_params (/Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/node_modules/express/lib/router/index.js:346:12)
+
+NOTE: the unpublished check flipped konten PROFIL to is_published = 0, verified it disappeared,
+then restored is_published = 1 (the task's transaction wording is not usable across HTTP sessions:
+an open transaction would hold the row lock and the endpoint would block instead of hiding the row).
+Final DB state: konten_publik WHERE is_published = 0 -> 0 rows.
+Server stopped after the run; no scratch files left in the repo.

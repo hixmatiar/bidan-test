@@ -1,0 +1,11 @@
+SET NOCOUNT ON;
+DISABLE TRIGGER trg_audit_logs_immutable ON dbo.audit_logs;
+DELETE FROM dbo.alergi_kondisi WHERE alergi_id = '2A3C433E-F36B-1410-864D-00CA0D54CA7B';
+DELETE FROM dbo.pasien WHERE pasien_id = 'A1180000-0000-4000-8000-000000000018';
+DELETE FROM dbo.audit_logs WHERE entitas_id IN ('A1180000-0000-4000-8000-000000000018', '2A3C433E-F36B-1410-864D-00CA0D54CA7B');
+ENABLE TRIGGER trg_audit_logs_immutable ON dbo.audit_logs;
+SELECT COUNT(*) AS audit_pasien FROM dbo.audit_logs WHERE entitas_id = 'A1180000-0000-4000-8000-000000000018';
+SELECT COUNT(*) AS audit_alergi FROM dbo.audit_logs WHERE entitas_id = '2A3C433E-F36B-1410-864D-00CA0D54CA7B';
+SELECT COUNT(*) AS pasien_count FROM dbo.pasien;
+SELECT COUNT(*) AS alergi_scratch FROM dbo.alergi_kondisi WHERE pasien_id = 'A1180000-0000-4000-8000-000000000018';
+SELECT name, is_disabled FROM sys.triggers WHERE name = 'trg_audit_logs_immutable';

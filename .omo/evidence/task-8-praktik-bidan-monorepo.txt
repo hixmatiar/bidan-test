@@ -1,0 +1,77 @@
+TASK 8 EVIDENCE - database/02_functions_views.sql (4 scalar functions + 14 views)
+Captured: 2026-11-13 WIB
+
+NOTE: host has no sqlcmd. SQL Server 2025 runs in Docker container 'sql_server_pikachen';
+sqlcmd used from inside the container: /opt/mssql-tools18/bin/sqlcmd
+Password read from container env MSSQL_SA_PASSWORD (not printed).
+
+=== 1) FIRST RUN (-b) ===
+$ docker exec -i sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P <pwd> -d PraktikBidan -b < backend/database/02_functions_views.sql
+Changed database context to 'PraktikBidan'.
+exit=0
+
+=== 2) RE-RUN (idempotent) ===
+$ same command
+Changed database context to 'PraktikBidan'.
+exit=0
+
+=== 3) OBJECT NAMES (expect 18) ===
+name                                                                                                                             type
+-------------------------------------------------------------------------------------------------------------------------------- ----
+fn_cek_alergi                                                                                                                    FN  
+fn_harga_berlaku                                                                                                                 FN  
+fn_hitung_estimasi_jam                                                                                                           FN  
+fn_status_stok                                                                                                                   FN  
+v_antrean_harian                                                                                                                 V   
+v_audit_log_detail                                                                                                               V   
+v_harga_berlaku                                                                                                                  V   
+v_inventaris_status                                                                                                              V   
+v_jam_tersibuk                                                                                                                   V   
+v_penjualan_item_periode                                                                                                         V   
+v_profil_rme                                                                                                                     V   
+v_rekap_kunjungan_harian                                                                                                         V   
+v_rekap_pendapatan                                                                                                               V   
+v_riwayat_stok_item                                                                                                              V   
+v_sesi_sisa_kuota                                                                                                                V   
+v_tagihan_belum_lunas                                                                                                            V   
+v_tagihan_detail                                                                                                                 V   
+v_tren_layanan                                                                                                                   V   
+
+(18 rows affected)
+total_objects
+-------------
+           18
+
+(1 rows affected)
+
+=== 4) FAILURE CASE: fn_harga_berlaku unknown ref (expect NULL) ===
+harga_null_check    
+--------------------
+                NULL
+
+(1 rows affected)
+
+=== 5) SMOKE: every view executes + unknown-id function fallbacks ===
+view_name                rows       
+------------------------ -----------
+v_antrean_harian                   0
+v_tagihan_belum_lunas              0
+v_rekap_pendapatan                 0
+v_inventaris_status                0
+v_harga_berlaku                    0
+v_rekap_kunjungan_harian           0
+v_tren_layanan                     0
+v_jam_tersibuk                     0
+v_penjualan_item_periode           0
+v_audit_log_detail                 0
+v_sesi_sisa_kuota                  0
+v_profil_rme                       0
+v_tagihan_detail                   0
+v_riwayat_stok_item                0
+
+(14 rows affected)
+estimasi_unknown       stok_unknown         alergi_unknown
+---------------------- -------------------- --------------
+                  NULL HABIS                             0
+
+(1 rows affected)
