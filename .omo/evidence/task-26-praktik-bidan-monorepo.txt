@@ -1,0 +1,146 @@
+TASK 26 EVIDENCE - price list, change and history (endpoints 37-39)
+Captured: 2026-11-14 (Asia/Jakarta)
+
+FILES
+- backend/src/modules/harga/harga.validators.ts (new)
+- backend/src/modules/harga/harga.repository.ts (new)
+- backend/src/modules/harga/harga.service.ts (new)
+- backend/src/modules/harga/harga.controller.ts (new)
+- backend/src/routes/harga.routes.ts (3 stubs replaced by the module + validate middleware)
+- backend/src/controllers/harga.controller.ts (left untouched: unused legacy stubs, same as the other modules)
+
+ENDPOINTS (plan rows 37-39)
+- POST /api/v1/harga/list                       ADMIN, BIDAN   -> current prices from dbo.v_harga_berlaku
+- PUT  /api/v1/harga/:ref_tipe/:ref_id          ADMIN           -> dbo.sp_ubah_harga (append-only)
+- POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list ADMIN, BIDAN -> dbo.riwayat_harga ordered berlaku_dari DESC
+
+STATIC VERIFICATION (cwd backend)
+$ npx tsc --noEmit
+exit=0 (no output)
+$ npm run build
+> tsc && tsc-alias
+exit=0
+$ npm run audit:routes
+...
+POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list
+POST /api/v1/harga/list
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+exit=0
+
+LIVE VERIFICATION
+Host has no sqlcmd; SQL Server 2025 container 'sql_server_pikachen' on localhost:1433.
+SQL ran with: docker exec sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -d PraktikBidan
+API started in the background on port 4226 (node dist/server.js, real DB, signed ADMIN + BIDAN JWT),
+killed by PID after the run. Seed users had failed_attempts=0 / locked_until=NULL, so login worked:
+POST /api/v1/auth/login admin/Admin#2026 -> HTTP 200 (role ADMIN)
+POST /api/v1/auth/login bidan/Bidan#2026 -> HTTP 200 (role BIDAN)
+
+Scratch master rows (deleted again at the end, see CLEANUP):
+item    A1260000-0000-4000-8000-000000000026  'ZZ Scratch Item Task 26'   open price 1000.00 dari 2026-11-14
+layanan B2260000-0000-4000-8000-000000000026  'ZZ Scratch Layanan Task 26' open price 50000.00 dari 2026-11-14
+
+1) POST /api/v1/harga/list (ADMIN, tanpa filter)
+{"status":"success","data":[...],"message":"Berhasil","meta":{"current_page":1,"per_page":15,"total":19,"last_page":2}}
+HTTP 200   (19 = 10 item + 8 layanan + 1 scratch item)
+
+2) POST /api/v1/harga/list {"ref_tipe":"LAYANAN","q":"Pemeriksaan","per_page":5}
+{"status":"success","data":[ANC 75000, Nifas 60000, Umum 50000],"meta":{"current_page":1,"per_page":5,"total":3,"last_page":1}}
+HTTP 200
+
+3) POST /api/v1/harga/list {"ref_tipe":"BOGUS"}
+{"status":"error","error_code":"ERR-VAL-03","message":"Validasi filter atau paginasi gagal",
+ "errors":[{"path":"ref_tipe","message":"Invalid enum value. Expected 'ITEM' | 'LAYANAN', received 'BOGUS'"}]}
+HTTP 422
+
+4) PUT /api/v1/harga/ITEM/A1260000-0000-4000-8000-000000000026
+   body {"harga":12345,"berlaku_dari":"2026-12-01","alasan":"Uji harga task 26"}
+{"status":"success","data":{"harga_id":"AA4506D5-B175-436C-9BFB-A0154B47C116","berlaku_dari":"2026-12-01T00:00:00.000Z"},
+ "message":"Harga berhasil diperbarui"}
+HTTP 200
+
+5) Baris harga setelah PUT (SQL) - append-only, baris lama ditutup di berlaku_dari - 1 hari
+ROW|2E3C433E-...|ITEM|1000.00|2026-11-14|2026-11-30|Harga awal scratch task 26|3FCB423E-...
+ROW|AA4506D5-...|ITEM|12345.00|2026-12-01|NULL|Uji harga task 26|3FCB423E-...
+   -> baris lama ditutup pada 2026-11-30 (= 2026-12-01 - 1 hari), baris baru disisipkan dengan berlaku_sampai NULL
+
+6) fn_harga_berlaku (SQL, tanpa kunjungan)
+FN_TODAY  |1000.00    (2026-11-14, harga lama masih berlaku)
+FN_NEWDATE|12345.00   (2026-12-01, harga baru berlaku)
+FN_AFTER  |12345.00   (2027-01-01, harga baru masih berlaku)
+
+7) POST /api/v1/harga/ITEM/A1260000-0000-4000-8000-000000000026/riwayat/list (ADMIN dan BIDAN)
+{"status":"success","data":[
+  {"harga_id":"AA4506D5-...","harga":12345,"berlaku_dari":"2026-12-01","berlaku_sampai":null,"alasan":"Uji harga task 26"},
+  {"harga_id":"2E3C433E-...","harga":1000,"berlaku_dari":"2026-11-14","berlaku_sampai":"2026-11-30","alasan":"Harga awal scratch task 26"}],
+ "meta":{"current_page":1,"per_page":15,"total":2,"last_page":1}}
+HTTP 200   -> dua baris tampil, urut berlaku_dari DESC
+
+8) PUT dengan harga negatif
+{"status":"error","error_code":"ERR-PRC-01","message":"Harga tidak valid.","errors":[]}
+HTTP 422   (THROW 50013 dari dbo.sp_ubah_harga dipetakan ERR-PRC-01)
+
+9) PUT dengan ref_tipe tidak valid
+{"status":"error","error_code":"ERR-VAL-02","message":"Validasi params gagal",
+ "errors":[{"path":"ref_tipe","message":"Invalid enum value. Expected 'ITEM' | 'LAYANAN', received 'BOGUS'"}]}
+HTTP 422
+
+10) PUT dengan tanggal berlaku yang duplikat (2026-12-01 sudah ada)
+{"status":"error","error_code":"ERR-PRC-01","message":"Harga untuk tanggal berlaku tersebut sudah ada.","errors":[]}
+HTTP 422
+
+11) PUT oleh BIDAN (role)
+{"status":"error","error_code":"ERR-AUTH-03","message":"Peran tidak diizinkan","errors":[]}
+HTTP 403
+
+12) POST riwayat/list dengan ref_tipe tidak valid -> ERR-VAL-02 HTTP 422
+13) POST /api/v1/harga/list tanpa token -> ERR-AUTH-02 HTTP 401
+
+14) Cabang LAYANAN (diverifikasi dengan scratch layanan)
+PUT /api/v1/harga/LAYANAN/B2260000-0000-4000-8000-000000000026 {"harga":99000,"berlaku_dari":"2026-12-01"}
+-> HTTP 200 {"harga_id":"8593A694-...","berlaku_dari":"2026-12-01"}
+ROW|333C433E-...|LAYANAN|50000.00|2026-11-14|2026-11-30
+ROW|8593A694-...|LAYANAN|99000.00|2026-12-01|NULL
+FN_NEWDATE|99000.00
+
+APPEND-ONLY PROOF (dbo.audit_logs, entitas riwayat_harga)
+20212 riwayat_harga 2E3C433E-... CREATE  (baris harga awal, diisi lewat SQL scratch)
+20213 riwayat_harga 2E3C433E-... UPDATE  (hanya menutup berlaku_sampai)
+20214 riwayat_harga AA4506D5-... CREATE  (baris harga baru)
+nilai_lama UPDATE: {"harga":1000.00,"berlaku_dari":"2026-11-14",...}   (tanpa berlaku_sampai)
+nilai_baru UPDATE: {"harga":1000.00,"berlaku_dari":"2026-11-14","berlaku_sampai":"2026-11-30",...}
+-> tidak ada UPDATE nilai harga in place; hanya INSERT + penutupan baris terbuka.
+
+CLEANUP
+Baris scratch dihapus lewat SQL (harga scratch -> item scratch -> layanan scratch):
+$ SELECT COUNT(*) FROM dbo.riwayat_harga;      -> 18
+$ SELECT COUNT(*) ... WHERE berlaku_sampai IS NULL;  -> 18   (semua terbuka seperti seed)
+$ SELECT COUNT(*) ... WHERE berlaku_sampai IS NOT NULL -> 0
+$ SELECT COUNT(*) FROM dbo.item_inventaris;    -> 10
+$ SELECT COUNT(*) FROM dbo.layanan;            -> 8
+$ SELECT COUNT(*) FROM dbo.riwayat_harga WHERE item_id/layanan_id = scratch -> 0
+$ POST /api/v1/harga/list total -> 18 (page 2 = 3 baris)
+Harga seed tidak diubah sama sekali, jadi tidak ada yang perlu dipulihkan.
+Audit rows untuk entitas scratch tetap ada (audit_logs append-only):
+  riwayat_harga 4 CREATE + 2 UPDATE + 4 DELETE, item_inventaris 1 CREATE + 1 DELETE, layanan 1 CREATE + 1 DELETE.
+Server dihentikan (PID dilepas), port 4226 bebas.
+
+NOTES
+- Tidak ada UPDATE harga in place: sp_ubah_harga menutup harga terbuka pada berlaku_dari - 1 hari
+  lalu menyisipkan baris baru yang terbuka; nilai harga lama tidak pernah diubah.
+- Semua SQL memakai parameter terikat (mssql request.input); tidak ada string harga/ref yang
+  digabungkan ke SQL.
+- berlaku_dari dikirim sebagai string 'YYYY-MM-DD' dan dikonversi ke DATE oleh SQL Server
+  (bentuk ISO deterministik), sehingga tidak ada pergeseran hari akibat zona waktu.
+- Error domain dari SP dipetakan lewat pola 'ERR-XXX-NN|pesan' yang sudah ada di
+  src/middlewares/errorHandler.ts; modul ini tidak mengubah middleware bersama.
+- Tidak ada perubahan skema, stored procedure, modul lain, plan, atau berkas .omo lain.
+
+COMMIT
+feat(backend): add price list, change and history
+  backend/src/modules/harga/harga.controller.ts   (new)
+  backend/src/modules/harga/harga.repository.ts  (new)
+  backend/src/modules/harga/harga.service.ts      (new)
+  backend/src/modules/harga/harga.validators.ts   (new)
+  backend/src/routes/harga.routes.ts              (modified)
