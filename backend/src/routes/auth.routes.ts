@@ -1,24 +1,31 @@
 import { Router } from 'express';
 import {
-  login,
-  logout,
-  refresh,
-  requestReset,
-  verifyReset,
-} from '@/controllers/auth.controller';
-import { authMiddleware, checkRole } from '@/middlewares/auth';
+  loginHandler,
+  logoutHandler,
+  refreshHandler,
+  requestResetHandler,
+  verifyResetHandler,
+} from '@/modules/auth/auth.controller';
+import {
+  loginSchema,
+  resetRequestSchema,
+  resetVerifySchema,
+} from '@/modules/auth/auth.validators';
+import { authMiddleware } from '@/middlewares/auth';
 import { dbSessionContext } from '@/middlewares/dbSession';
 import { publicRateLimiter } from '@/middlewares/rateLimit';
+import { validate } from '@/middlewares/validate';
 
 const router = Router();
 
-// Public endpoints share the limiter; logout/refresh are guarded per route.
+// Public endpoints share the limiter; login writes failed_attempts and its audit
+// trigger needs the per-request session context, so both run for the whole router.
 router.use(publicRateLimiter, dbSessionContext);
 
-router.post('/login', login);
-router.post('/logout', authMiddleware, checkRole('BIDAN', 'ADMIN'), logout);
-router.post('/refresh', authMiddleware, checkRole('BIDAN', 'ADMIN'), refresh);
-router.post('/reset/request', requestReset);
-router.post('/reset/verify', verifyReset);
+router.post('/login', validate({ body: loginSchema }), loginHandler);
+router.post('/logout', authMiddleware, logoutHandler);
+router.post('/refresh', authMiddleware, refreshHandler);
+router.post('/reset/request', validate({ body: resetRequestSchema }), requestResetHandler);
+router.post('/reset/verify', validate({ body: resetVerifySchema }), verifyResetHandler);
 
 export default router;
