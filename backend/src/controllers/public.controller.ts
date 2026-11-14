@@ -9,8 +9,5 @@ const stub = async (
   next(new AppError('ERR-SYS-01'));
 };
 
-export const listKonten = stub;
-export const listLayanan = stub;
-export const listSesi = stub;
 export const cekPasien = stub;
 export const buatReservasi = stub;

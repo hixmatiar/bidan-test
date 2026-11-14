@@ -1,13 +1,12 @@
 import { Router } from 'express';
+import { buatReservasi, cekPasien } from '@/controllers/public.controller';
+import { dbSessionContext } from '@/middlewares/dbSession';
+import { publicRateLimiter } from '@/middlewares/rateLimit';
 import {
-  buatReservasi,
-  cekPasien,
   listKonten,
   listLayanan,
   listSesi,
-} from '@/controllers/public.controller';
-import { dbSessionContext } from '@/middlewares/dbSession';
-import { publicRateLimiter } from '@/middlewares/rateLimit';
+} from '@/modules/public/controller';
 
 const router = Router();
 
