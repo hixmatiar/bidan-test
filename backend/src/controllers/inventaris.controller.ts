@@ -9,8 +9,5 @@ const stub = async (
   next(new AppError('ERR-SYS-01'));
 };
 
-export const listInventaris = stub;
-export const createInventaris = stub;
-export const updateInventaris = stub;
 export const restockInventaris = stub;
 export const listRiwayatStok = stub;
