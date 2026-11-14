@@ -1,4 +1,5 @@
 import sql from 'mssql';
+import { AppError } from '@/utils/errors';
 
 type Db = sql.ConnectionPool;
 
@@ -330,6 +331,153 @@ export async function updateAlergi(
   `);
 
   return result.recordset[0] ?? null;
+}
+
+export interface CreatedKunjungan {
+  kunjungan_id: string;
+  tagihan_id: string;
+  total_tagihan: number;
+}
+
+export interface CatatanKunjunganRow {
+  kunjungan_id: string;
+  catatan_bebas: string | null;
+}
+
+export async function hasRedFlagConfirmationToday(
+  db: Db,
+  pasienId: string,
+  userId: string,
+): Promise<boolean> {
+  const result = await db
+    .request()
+    .input('pasien_id', sql.UniqueIdentifier, pasienId)
+    .input('user_id', sql.UniqueIdentifier, userId)
+    .query<{ found: number }>(`
+      SELECT TOP 1 1 AS found
+      FROM dbo.audit_logs
+      WHERE aksi = 'RED_FLAG_CONFIRMED'
+        AND entitas = 'pasien'
+        AND entitas_id = CONVERT(NVARCHAR(64), @pasien_id)
+        AND user_id = @user_id
+        AND CAST(created_at AS DATE) = CAST(SWITCHOFFSET(SYSDATETIMEOFFSET(), '+07:00') AS DATE)
+    `);
+
+  return result.recordset.length > 0;
+}
+
+export async function kunjunganMilikPasien(
+  db: Db,
+  kunjunganId: string,
+  pasienId: string,
+): Promise<boolean> {
+  const result = await db
+    .request()
+    .input('kunjungan_id', sql.UniqueIdentifier, kunjunganId)
+    .input('pasien_id', sql.UniqueIdentifier, pasienId)
+    .query<{ found: number }>(`
+      SELECT TOP 1 1 AS found
+      FROM dbo.kunjungan
+      WHERE kunjungan_id = @kunjungan_id AND pasien_id = @pasien_id
+    `);
+
+  return result.recordset.length > 0;
+}
+
+export async function createKunjunganViaSp(
+  db: Db,
+  params: {
+    pasienId: string;
+    reservasiId: string | null;
+    bidanId: string;
+    layananId: string;
+    tanggalKunjungan: Date;
+    keluhan: string;
+    pemeriksaanFisik: string;
+    diagnosis: string;
+    tindakan: string;
+    catatanBebas: string | null;
+    koreksiDariId: string | null;
+    resep: Array<{
+      itemId: string;
+      jumlah: number;
+      aturanPakai: string | null;
+    }>;
+  },
+): Promise<CreatedKunjungan> {
+  const resep = new sql.Table('dbo.tvp_resep');
+  resep.columns.add('item_id', sql.UniqueIdentifier, { nullable: false });
+  resep.columns.add('jumlah', sql.Decimal(10, 2), { nullable: false });
+  resep.columns.add('aturan_pakai', sql.NVarChar(100), { nullable: true });
+
+  for (const item of params.resep) {
+    resep.rows.add(item.itemId, item.jumlah, item.aturanPakai);
+  }
+
+  const result = await db
+    .request()
+    .input('pasien_id', sql.UniqueIdentifier, params.pasienId)
+    .input('reservasi_id', sql.UniqueIdentifier, params.reservasiId)
+    .input('bidan_id', sql.UniqueIdentifier, params.bidanId)
+    .input('layanan_id', sql.UniqueIdentifier, params.layananId)
+    .input('tanggal_kunjungan', sql.DateTime2, params.tanggalKunjungan)
+    .input('keluhan', sql.NVarChar(sql.MAX), params.keluhan)
+    .input('pemeriksaan_fisik', sql.NVarChar(sql.MAX), params.pemeriksaanFisik)
+    .input('diagnosis', sql.NVarChar(sql.MAX), params.diagnosis)
+    .input('tindakan', sql.NVarChar(sql.MAX), params.tindakan)
+    .input('catatan_bebas', sql.NVarChar(sql.MAX), params.catatanBebas)
+    .input('koreksi_dari_id', sql.UniqueIdentifier, params.koreksiDariId)
+    .input('resep', resep)
+    .execute<CreatedKunjungan>('dbo.sp_simpan_kunjungan');
+
+  const created = result.recordset[0];
+  if (!created) throw new AppError('ERR-SYS-02');
+
+  return created;
+}
+
+export async function appendCatatanKunjungan(
+  db: Db,
+  kunjunganId: string,
+  appendText: string,
+): Promise<CatatanKunjunganRow | null> {
+  const result = await db
+    .request()
+    .input('kunjungan_id', sql.UniqueIdentifier, kunjunganId)
+    .input('append_text', sql.NVarChar(sql.MAX), appendText)
+    .query<CatatanKunjunganRow>(`
+      SET NOCOUNT ON;
+
+      UPDATE dbo.kunjungan
+      SET catatan_bebas = ISNULL(catatan_bebas, N'') + @append_text
+      OUTPUT INSERTED.kunjungan_id, INSERTED.catatan_bebas
+      WHERE kunjungan_id = @kunjungan_id;
+    `);
+
+  return result.recordset[0] ?? null;
+}
+
+export async function insertAuditDataExported(
+  db: Db,
+  params: {
+    pasienId: string;
+    userId: string;
+    username: string;
+    ip: string | null;
+  },
+): Promise<void> {
+  await db
+    .request()
+    .input('user_id', sql.UniqueIdentifier, params.userId)
+    .input('user_ref', sql.NVarChar(50), params.username)
+    .input('entitas_id', sql.NVarChar(64), params.pasienId)
+    .input('ip_address', sql.VarChar(45), params.ip)
+    .query(`
+      INSERT INTO dbo.audit_logs
+        (user_id, user_ref, aksi, entitas, entitas_id, nilai_lama, nilai_baru, ip_address)
+      VALUES
+        (@user_id, @user_ref, 'DATA_EXPORTED', 'pasien', @entitas_id, NULL, NULL, @ip_address)
+    `);
 }
 
 export async function insertAuditViewRme(
