@@ -21,16 +21,16 @@ Isi `DB_PASSWORD` di `backend/.env` (dan sesuaikan `DB_HOST`, `DB_PORT`, `DB_USE
 > Database diasumsikan sudah termigrasi pada lingkungan ini; **jangan menjalankan ulang** skrip SQL berikut. Daftar urutan file untuk referensi/setup lingkungan baru (jalankan berurutan 01–05, jangan diacak):
 
 1. `backend/database/01_schema.sql`
-2. `backend/database/02_indexes.sql`
-3. `backend/database/03_procedures.sql`
+2. `backend/database/02_functions_views.sql`
+3. `backend/database/03_stored_procedures.sql`
 4. `backend/database/04_triggers.sql`
 5. `backend/database/05_seed.sql`
 
 Contoh perintah `sqlcmd` (sesuaikan server/port/user/database; tambahkan `-C` untuk sertifikat self-signed dev):
 ```bash
 sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d master -i backend/database/01_schema.sql
-sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d PraktikBidan -i backend/database/02_indexes.sql
-sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d PraktikBidan -i backend/database/03_procedures.sql
+sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d PraktikBidan -i backend/database/02_functions_views.sql
+sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d PraktikBidan -i backend/database/03_stored_procedures.sql
 sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d PraktikBidan -i backend/database/04_triggers.sql
 sqlcmd -S localhost,1433 -U sa -P "<DB_PASSWORD>" -C -d PraktikBidan -i backend/database/05_seed.sql
 ```
