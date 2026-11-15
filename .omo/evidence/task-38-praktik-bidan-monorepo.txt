@@ -1,0 +1,47 @@
+Task 38 - Dev DB migration verification and E2E API smoke (PraktikBidan)
+Date: 2026-11-15
+Target: local SQL Server 2025 container `sql_server_pikachen`, DB `PraktikBidan`
+Policy: did NOT re-run 01-05 (DB already migrated); did NOT modify dbo.users/password hashes/seed.
+
+== 1) Reachability (sqlcmd inside container) ==
+$ docker inspect sql_server_pikachen --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^MSSQL_SA_PASSWORD=//p'  (retrieved, redacted)
+$ docker exec sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P "$P" -Q "SELECT @@VERSION"
+Microsoft SQL Server 2025 (RTM-CU9) (KB5122048) - 17.0.5005.3 (X64)  ... reachable OK.
+
+== 2) Object counts (expected 18 tables / 4 functions / 14 views / 6 procedures / 15 audit + 1 immutable = 16 triggers) ==
+$ docker exec ... sqlcmd -I -C -S localhost -U sa -P "$P" -d PraktikBidan -Q "SET NOCOUNT ON; SELECT 'TABLES='+CAST(COUNT(*) AS varchar(10)) FROM sys.tables WHERE schema_id=SCHEMA_ID('dbo'); SELECT 'FUNCS='+CAST(COUNT(*) AS varchar(10)) FROM sys.objects WHERE type IN ('FN','IF','TF') AND schema_id=SCHEMA_ID('dbo'); SELECT 'VIEWS='+CAST(COUNT(*) AS varchar(10)) FROM sys.views WHERE schema_id=SCHEMA_ID('dbo'); SELECT 'PROCS='+CAST(COUNT(*) AS varchar(10)) FROM sys.procedures WHERE schema_id=SCHEMA_ID('dbo'); SELECT 'TRIGGERS='+CAST(COUNT(*) AS varchar(10)) FROM sys.triggers t JOIN sys.objects o ON t.parent_id=o.object_id WHERE o.schema_id=SCHEMA_ID('dbo');"
+TABLES=18
+FUNCS=4
+VIEWS=14
+PROCS=6
+TRIGGERS=16
+Result: PASS (18/4/14/6/16).
+
+== 3) Smoke script ==
+Created backend/scripts/smoke-e2e.mjs (node fetch). Covers:
+- login bidan (Bidan#2026) -> token; login admin (Admin#2026) -> token
+- POST /api/v1/public/layanan/list (meta/data)
+- POST /api/v1/public/reservasi (new patient) -> 201
+- POST /api/v1/pasien/walk-in as admin -> 201
+- POST /api/v1/pasien/:id/rme/detail as bidan -> 200 (creates VIEW_RME audit)
+- POST /api/v1/pasien/:id/red-flag/konfirmasi -> 200
+- POST /api/v1/pasien/:id/kunjungan with one resep item -> 201
+- POST /api/v1/kunjungan/:id/tagihan/detail (admin) -> 200
+- POST /api/v1/tagihan/:id/pembayaran full amount -> 201, status LUNAS
+- POST /api/v1/audit-logs/list (bidan) -> 200 shows mutations
+- Failure: overpayment -> 409; quota overrun -> 409 (pre-filled session at kuota 1)
+
+== 4) Backend start/stop ==
+$ cd backend && PORT=4106 nohup node dist/server.js > /tmp/task38-server.log 2>&1 &
+PID 52559; health probe GET / => 404 JSON (ERR-SYS-01 endpoint tidak ditemukan) confirms server up on 4106.
+$ BASE_URL=http://127.0.0.1:4106 QUOTA_SESI_ID=CABCEA48-3F8F-4AC5-A33A-970FB1F33818 QUOTA_LAYANAN_ID=41CB423E-F36B-1410-864C-00CA0D54CA7B node backend/scripts/smoke-e2e.mjs .omo/evidence/task-38-smoke.json
+19 steps, all OK (paymentStatus LUNAS, quota overrun 409, overpayment 409).
+$ kill <pid>; verify port 4106 stopped. PASS.
+
+== 5) Artifacts ==
+- backend/scripts/backup-db.sh (SQL Server native backup helper, full/log)
+- backend/scripts/smoke-e2e.mjs
+- .omo/evidence/task-38-smoke.json (machine results)
+- .omo/evidence/task-38-praktik-bidan-monorepo.txt (this transcript)
+
+Overall: PASS (DB reachable, counts 18/4/14/6/16, core API flows 201/200, bill LUNAS, audit rows exercised, 409 failure cases confirmed).
