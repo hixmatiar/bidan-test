@@ -1,0 +1,2280 @@
+{
+  "info": {
+    "name": "Praktik Mandiri Bidan API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated collection (51 requests, 11 folders). Generate via: node backend/docs/postman/generate-postman.mjs"
+  },
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Endpoint: Login\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Auth\nKemungkinan error: ERR-AUTH-01, ERR-AUTH-05, ERR-LOCK-01, ERR-VAL-01, ERR-SYS-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"bidan\",\n  \"password\": \"Bidan#2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_token = data.token || data.access_token;",
+                  "  if (v_token !== undefined && v_token !== null) pm.environment.set('token', v_token);",
+                  "  const v_user_id = data.user && data.user.id ? data.user.id : data.user_id;",
+                  "  if (v_user_id !== undefined && v_user_id !== null) pm.environment.set('user_id', v_user_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Endpoint: Logout\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Auth\nKemungkinan error: ERR-AUTH-02, ERR-AUTH-04",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Endpoint: Refresh Token\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Auth\nKemungkinan error: ERR-AUTH-02, ERR-AUTH-04",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_token = data.token || data.access_token;",
+                  "  if (v_token !== undefined && v_token !== null) pm.environment.set('token', v_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset Password Request (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/reset/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "reset",
+                "request"
+              ]
+            },
+            "description": "Endpoint: Reset Password Request (OTP)\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Auth\nKemungkinan error: ERR-VAL-01, ERR-NTF-01, ERR-SYS-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"bidan\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password Verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/reset/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "reset",
+                "verify"
+              ]
+            },
+            "description": "Endpoint: Reset Password Verify\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Auth\nKemungkinan error: ERR-AUTH-01, ERR-VAL-01, ERR-SYS-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"bidan\",\n  \"kode\": \"123456\",\n  \"password_baru\": \"PasswordBaru#2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Public",
+      "item": [
+        {
+          "name": "List Konten Publik",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/konten/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "public",
+                "konten",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Konten Publik\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Public\nKemungkinan error: ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipe\": \"PROFIL\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Layanan Publik",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/layanan/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "public",
+                "layanan",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Layanan Publik\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Public\nKemungkinan error: ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Sesi Publik",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/sesi/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "public",
+                "sesi",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Sesi Publik\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Public\nKemungkinan error: ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tanggal_dari\": \"2026-11-01\",\n  \"tanggal_sampai\": \"2026-11-30\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cek Pasien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/pasien/cek",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "public",
+                "pasien",
+                "cek"
+              ]
+            },
+            "description": "Endpoint: Cek Pasien\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Public\nKemungkinan error: ERR-VAL-01, ERR-RME-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"no_telepon\": \"081234567890\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_pasien_id = data.pasien_id;",
+                  "  if (v_pasien_id !== undefined && v_pasien_id !== null) pm.environment.set('pasien_id', v_pasien_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buat Reservasi Online",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/reservasi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "public",
+                "reservasi"
+              ]
+            },
+            "description": "Endpoint: Buat Reservasi Online\nPublic (tanpa autentikasi)\nReferensi FSD: Bagian 1.6 / Public\nKemungkinan error: ERR-VAL-01, ERR-RSV-01, ERR-RSV-02, ERR-RSV-05, ERR-SYS-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sesi_id\": \"{{sesi_id}}\",\n  \"layanan_id\": \"22222222-2222-4222-8222-222222222222\",\n  \"pasien_baru\": {\n    \"nik\": \"3201010101010001\",\n    \"nama\": \"Pasien Contoh\",\n    \"tgl_lahir\": \"1995-05-10\",\n    \"alamat\": \"Jl. Contoh No. 1\",\n    \"no_telepon\": \"081234567890\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_reservasi_id = data.reservasi_id || data.id;",
+                  "  if (v_reservasi_id !== undefined && v_reservasi_id !== null) pm.environment.set('reservasi_id', v_reservasi_id);",
+                  "  const v_pasien_id = data.pasien_id || (data.pasien && data.pasien.id) || data.pasien && data.pasien.pasien_id;",
+                  "  if (v_pasien_id !== undefined && v_pasien_id !== null) pm.environment.set('pasien_id', v_pasien_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Pendaftaran & Antrean",
+      "item": [
+        {
+          "name": "List Identitas Pasien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/identitas/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "identitas",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Identitas Pasien\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-02, ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"q\": \"Pasien\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Walk-in Pasien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/walk-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "walk-in"
+              ]
+            },
+            "description": "Endpoint: Walk-in Pasien\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-VAL-01, ERR-RSV-01, ERR-RSV-02, ERR-RSV-05",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sesi_id\": \"{{sesi_id}}\",\n  \"layanan_id\": \"22222222-2222-4222-8222-222222222222\",\n  \"pasien_baru\": {\n    \"nik\": \"3201010101010002\",\n    \"nama\": \"Walkin Contoh\",\n    \"tgl_lahir\": \"1990-01-01\",\n    \"alamat\": \"Jl. Walkin 2\",\n    \"no_telepon\": \"081298765432\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_pasien_id = data.pasien_id || (data.pasien && data.pasien.id);",
+                  "  if (v_pasien_id !== undefined && v_pasien_id !== null) pm.environment.set('pasien_id', v_pasien_id);",
+                  "  const v_reservasi_id = data.reservasi_id || data.id;",
+                  "  if (v_reservasi_id !== undefined && v_reservasi_id !== null) pm.environment.set('reservasi_id', v_reservasi_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Reservasi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservasi/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservasi",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Reservasi\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tanggal\": \"2026-11-15\",\n  \"status\": \"MENUNGGU\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reschedule Reservasi",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservasi/{{id}}/jadwal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservasi",
+                "{{id}}",
+                "jadwal"
+              ]
+            },
+            "description": "Endpoint: Reschedule Reservasi\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-RSV-01, ERR-RSV-02, ERR-RSV-03, ERR-RSV-04, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sesi_id_baru\": \"{{sesi_id}}\",\n  \"alasan\": \"Perubahan jadwal pasien\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Batalkan Reservasi",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservasi/{{id}}/batal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservasi",
+                "{{id}}",
+                "batal"
+              ]
+            },
+            "description": "Endpoint: Batalkan Reservasi\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-RSV-03, ERR-RSV-04, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alasan\": \"Pasien berhalangan hadir\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status Reservasi",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservasi/{{id}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservasi",
+                "{{id}}",
+                "status"
+              ]
+            },
+            "description": "Endpoint: Update Status Reservasi\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-RSV-03, ERR-RSV-04, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DIPANGGIL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Sesi (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sesi/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sesi",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Sesi (Admin)\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tanggal_dari\": \"2026-11-01\",\n  \"tanggal_sampai\": \"2026-11-30\",\n  \"is_active\": true,\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat Sesi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sesi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sesi"
+              ]
+            },
+            "description": "Endpoint: Buat Sesi\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-RSV-02, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tanggal\": \"2026-11-20\",\n  \"jam_mulai\": \"09:00\",\n  \"jam_selesai\": \"12:00\",\n  \"kuota_maks\": 10,\n  \"durasi_per_pasien\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_sesi_id = data.sesi_id || data.id;",
+                  "  if (v_sesi_id !== undefined && v_sesi_id !== null) pm.environment.set('sesi_id', v_sesi_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Sesi",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sesi/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sesi",
+                "{{id}}"
+              ]
+            },
+            "description": "Endpoint: Update Sesi\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Pendaftaran & Antrean\nKemungkinan error: ERR-AUTH-03, ERR-RSV-01, ERR-RSV-02, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kuota_maks\": 12,\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. RME & Keselamatan Pasien",
+      "item": [
+        {
+          "name": "List Pasien (RME)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Pasien (RME)\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"q\": \"Pasien\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detail RME Pasien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/{{id}}/rme/detail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "{{id}}",
+                "rme",
+                "detail"
+              ]
+            },
+            "description": "Endpoint: Detail RME Pasien\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-RME-01, ERR-VAL-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Alergi/Kondisi Pasien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/{{id}}/alergi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "{{id}}",
+                "alergi"
+              ]
+            },
+            "description": "Endpoint: Tambah Alergi/Kondisi Pasien\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-RME-01, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kategori\": \"KEHAMILAN_RISTI\",\n  \"nama\": \"Hipertensi\",\n  \"keterangan\": \"Tekanan darah tinggi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Konfirmasi Red-Flag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/{{id}}/red-flag/konfirmasi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "{{id}}",
+                "red-flag",
+                "konfirmasi"
+              ]
+            },
+            "description": "Endpoint: Konfirmasi Red-Flag\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-RME-01, ERR-VAL-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat Kunjungan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/{{id}}/kunjungan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "{{id}}",
+                "kunjungan"
+              ]
+            },
+            "description": "Endpoint: Buat Kunjungan\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-RME-01, ERR-RME-03, ERR-RME-04, ERR-INV-02, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservasi_id\": \"{{reservasi_id}}\",\n  \"layanan_id\": \"22222222-2222-4222-8222-222222222222\",\n  \"tanggal_kunjungan\": \"2026-11-15T09:15:00+07:00\",\n  \"keluhan\": \"Mual dan pusing\",\n  \"pemeriksaan_fisik\": \"TD 120/80, suhu normal\",\n  \"diagnosis\": \"Kehamilan normal trimester 1\",\n  \"tindakan\": \"Konseling dan pemberian vitamin\",\n  \"catatan_bebas\": \"Kontrol 1 bulan lagi\",\n  \"resep\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"jumlah\": 1,\n      \"aturan_pakai\": \"1x sehari setelah makan\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_kunjungan_id = data.kunjungan_id || data.id;",
+                  "  if (v_kunjungan_id !== undefined && v_kunjungan_id !== null) pm.environment.set('kunjungan_id', v_kunjungan_id);",
+                  "  const v_tagihan_id = data.tagihan_id;",
+                  "  if (v_tagihan_id !== undefined && v_tagihan_id !== null) pm.environment.set('tagihan_id', v_tagihan_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Export RME Pasien",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pasien/{{id}}/rme/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pasien",
+                "{{id}}",
+                "rme",
+                "export"
+              ]
+            },
+            "description": "Endpoint: Export RME Pasien\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-RME-01, ERR-RPT-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"format\": \"pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Alergi/Kondisi",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/alergi/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "alergi",
+                "{{id}}"
+              ]
+            },
+            "description": "Endpoint: Update Alergi/Kondisi\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-VAL-01, ERR-VAL-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true,\n  \"keterangan\": \"Dipantau rutin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tambah Catatan Kunjungan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/kunjungan/{{id}}/catatan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kunjungan",
+                "{{id}}",
+                "catatan"
+              ]
+            },
+            "description": "Endpoint: Tambah Catatan Kunjungan\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / RME & Keselamatan Pasien\nKemungkinan error: ERR-AUTH-03, ERR-RME-02, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catatan\": \"Pasien diminta kontrol ulang bila keluhan berlanjut.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Keuangan & Tagihan",
+      "item": [
+        {
+          "name": "Detail Tagihan Kunjungan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/kunjungan/{{id}}/tagihan/detail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "kunjungan",
+                "{{id}}",
+                "tagihan",
+                "detail"
+              ]
+            },
+            "description": "Endpoint: Detail Tagihan Kunjungan\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Keuangan & Tagihan\nKemungkinan error: ERR-AUTH-03, ERR-FIN-01, ERR-RME-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Tagihan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tagihan/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tagihan",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Tagihan\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Keuangan & Tagihan\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BELUM_LUNAS\",\n  \"tanggal_dari\": \"2026-11-01\",\n  \"tanggal_sampai\": \"2026-11-30\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Catat Pembayaran Tagihan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tagihan/{{id}}/pembayaran",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tagihan",
+                "{{id}}",
+                "pembayaran"
+              ]
+            },
+            "description": "Endpoint: Catat Pembayaran Tagihan\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Keuangan & Tagihan\nKemungkinan error: ERR-AUTH-03, ERR-FIN-01, ERR-FIN-02, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jumlah\": 50000,\n  \"jalur\": \"MANDIRI\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rekap Pendapatan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/keuangan/rekap/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "keuangan",
+                "rekap",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Rekap Pendapatan\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Keuangan & Tagihan\nKemungkinan error: ERR-AUTH-03, ERR-RPT-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dari\": \"2026-11-01\",\n  \"sampai\": \"2026-11-30\",\n  \"grup\": \"HARIAN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Inventaris",
+      "item": [
+        {
+          "name": "List Inventaris",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/inventaris/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventaris",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Inventaris\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Inventaris\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kategori\": \"OBAT\",\n  \"q\": \"vit\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat Item Inventaris",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/inventaris",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventaris"
+              ]
+            },
+            "description": "Endpoint: Buat Item Inventaris\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Inventaris\nKemungkinan error: ERR-AUTH-03, ERR-INV-03, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Vitamin A 10000 IU\",\n  \"kategori\": \"OBAT\",\n  \"satuan\": \"kapsul\",\n  \"stok\": 50,\n  \"stok_minimum\": 10,\n  \"tgl_kedaluwarsa\": \"2027-12-31\",\n  \"harga\": 2500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  const data = json && json.data ? json.data : {};",
+                  "  const v_item_id = data.item_id || data.id;",
+                  "  if (v_item_id !== undefined && v_item_id !== null) pm.environment.set('item_id', v_item_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Item Inventaris",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/inventaris/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventaris",
+                "{{id}}"
+              ]
+            },
+            "description": "Endpoint: Update Item Inventaris\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Inventaris\nKemungkinan error: ERR-AUTH-03, ERR-INV-01, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stok_minimum\": 15,\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restock Item Inventaris",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/inventaris/{{id}}/restock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventaris",
+                "{{id}}",
+                "restock"
+              ]
+            },
+            "description": "Endpoint: Restock Item Inventaris\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Inventaris\nKemungkinan error: ERR-AUTH-03, ERR-INV-01, ERR-INV-03, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jumlah\": 20,\n  \"harga_beli\": 2200,\n  \"tgl_kedaluwarsa\": \"2028-01-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Riwayat Stok Inventaris",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/inventaris/{{id}}/riwayat/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "inventaris",
+                "{{id}}",
+                "riwayat",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Riwayat Stok Inventaris\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Inventaris\nKemungkinan error: ERR-AUTH-03, ERR-INV-01, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jenis\": \"RESTOCK\",\n  \"tanggal_dari\": \"2026-11-01\",\n  \"tanggal_sampai\": \"2026-11-30\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Harga",
+      "item": [
+        {
+          "name": "List Harga",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/harga/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "harga",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Harga\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Harga\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ref_tipe\": \"LAYANAN\",\n  \"q\": \"periksa\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ubah Harga",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/harga/{{ref_tipe}}/{{ref_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "harga",
+                "{{ref_tipe}}",
+                "{{ref_id}}"
+              ]
+            },
+            "description": "Endpoint: Ubah Harga\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Harga\nKemungkinan error: ERR-AUTH-03, ERR-PRC-01, ERR-VAL-01, ERR-VAL-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"harga\": 75000,\n  \"berlaku_dari\": \"2026-12-01\",\n  \"alasan\": \"Penyesuaian tarif 2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Riwayat Harga",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/harga/{{ref_tipe}}/{{ref_id}}/riwayat/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "harga",
+                "{{ref_tipe}}",
+                "{{ref_id}}",
+                "riwayat",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Riwayat Harga\nPeran diizinkan: ADMIN, BIDAN\nReferensi FSD: Bagian 1.6 / Harga\nKemungkinan error: ERR-AUTH-03, ERR-VAL-02, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Laporan Analitik",
+      "item": [
+        {
+          "name": "Ringkasan Laporan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/laporan/ringkasan/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "laporan",
+                "ringkasan",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Ringkasan Laporan\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Laporan Analitik\nKemungkinan error: ERR-AUTH-03, ERR-RPT-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dari\": \"2026-11-01\",\n  \"sampai\": \"2026-11-30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tren Layanan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/laporan/tren-layanan/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "laporan",
+                "tren-layanan",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Tren Layanan\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Laporan Analitik\nKemungkinan error: ERR-AUTH-03, ERR-RPT-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dari\": \"2026-11-01\",\n  \"sampai\": \"2026-11-30\",\n  \"grup\": \"HARIAN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Jam Tersibuk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/laporan/jam-tersibuk/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "laporan",
+                "jam-tersibuk",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Jam Tersibuk\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Laporan Analitik\nKemungkinan error: ERR-AUTH-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Perbandingan Periode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/laporan/perbandingan/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "laporan",
+                "perbandingan",
+                "list"
+              ]
+            },
+            "description": "Endpoint: Perbandingan Periode\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Laporan Analitik\nKemungkinan error: ERR-AUTH-03, ERR-RPT-01, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"periode_a\": {\n    \"dari\": \"2026-10-01\",\n    \"sampai\": \"2026-10-31\"\n  },\n  \"periode_b\": {\n    \"dari\": \"2026-11-01\",\n    \"sampai\": \"2026-11-30\"\n  },\n  \"grup\": \"LAYANAN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Laporan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/laporan/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "laporan",
+                "export"
+              ]
+            },
+            "description": "Endpoint: Export Laporan\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Laporan Analitik\nKemungkinan error: ERR-AUTH-03, ERR-RPT-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"format\": \"pdf\",\n  \"laporan\": \"ringkasan\",\n  \"dari\": \"2026-11-01\",\n  \"sampai\": \"2026-11-30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Konten Publik",
+      "item": [
+        {
+          "name": "List Konten (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/konten/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "konten",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Konten (Admin)\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Konten Publik\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipe\": \"PROFIL\",\n  \"is_published\": true,\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buat Konten",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/konten",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "konten"
+              ]
+            },
+            "description": "Endpoint: Buat Konten\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Konten Publik\nKemungkinan error: ERR-AUTH-03, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipe\": \"PROFIL\",\n  \"judul\": \"Tentang Praktik\",\n  \"isi\": \"Profil singkat praktik bidan.\",\n  \"media_url\": \"https://example.com/profil.jpg\",\n  \"urutan\": 1,\n  \"is_published\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Konten",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/konten/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "konten",
+                "{{id}}"
+              ]
+            },
+            "description": "Endpoint: Update Konten\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Konten Publik\nKemungkinan error: ERR-AUTH-03, ERR-CNT-01, ERR-VAL-01",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judul\": \"Tentang Praktik (Update)\",\n  \"is_published\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hapus Konten",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/konten/{{id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "konten",
+                "{{id}}"
+              ]
+            },
+            "description": "Endpoint: Hapus Konten\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Konten Publik\nKemungkinan error: ERR-AUTH-03, ERR-CNT-01"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Notifikasi",
+      "item": [
+        {
+          "name": "List Log Notifikasi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifikasi/log/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifikasi",
+                "log",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Log Notifikasi\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Notifikasi\nKemungkinan error: ERR-AUTH-03, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jenis\": \"KONFIRMASI\",\n  \"status\": \"GAGAL\",\n  \"tanggal_dari\": \"2026-11-01\",\n  \"tanggal_sampai\": \"2026-11-30\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kirim Ulang Notifikasi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifikasi/{{id}}/kirim-ulang",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifikasi",
+                "{{id}}",
+                "kirim-ulang"
+              ]
+            },
+            "description": "Endpoint: Kirim Ulang Notifikasi\nPeran diizinkan: ADMIN\nReferensi FSD: Bagian 1.6 / Notifikasi\nKemungkinan error: ERR-AUTH-03, ERR-NTF-01, ERR-VAL-02",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "11. Audit Logs",
+      "item": [
+        {
+          "name": "List Audit Logs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/audit-logs/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "audit-logs",
+                "list"
+              ]
+            },
+            "description": "Endpoint: List Audit Logs\nPeran diizinkan: BIDAN\nReferensi FSD: Bagian 1.6 / Audit Logs\nKemungkinan error: ERR-AUTH-03, ERR-VAL-01, ERR-VAL-03",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entitas\": \"pasien\",\n  \"aksi\": \"VIEW_RME\",\n  \"tanggal_dari\": \"2026-11-01\",\n  \"tanggal_sampai\": \"2026-11-30\",\n  \"page\": 1,\n  \"per_page\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
