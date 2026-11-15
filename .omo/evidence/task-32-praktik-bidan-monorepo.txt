@@ -1,0 +1,39 @@
+Task 32 - Audit log search (POST /audit-logs/list)
+
+== Plan (lines 460-467) ==
+- POST /audit-logs/list (BIDAN only) filters user_id, aksi, entitas, entitas_id, date range + pagination from dbo.audit_logs/v_audit_log_detail context, ordered created_at DESC.
+- Return nilai_lama/nilai_baru parsed to JSON when present. ADMIN 403. No writes. Never expose password values.
+
+== Implementation ==
+- Replaced stub route wiring in backend/src/routes/auditLogs.routes.ts to real module with auth(BIDAN)+dbSession+validate.
+- Added backend/src/modules/auditLogs/{auditLogs.validators.ts,auditLogs.repository.ts,auditLogs.service.ts,auditLogs.controller.ts}
+  - Validators: q/aksi/entitas/user_id/tanggal_dari/tanggal_sampai with date format/range checks (422 via ERR-VAL-01 on invalid).
+  - Repository: reads dbo.audit_logs joined users (COALESCE username/user_ref), filters + pagination, ORDER BY created_at DESC, log_id DESC; parses nilai_lama/nilai_baru JSON and strips keys matching /password/i.
+  - Controller/service follow existing module patterns.
+- Removed stub backend/src/controllers/auditLogs.controller.ts.
+
+== Verification ==
+$ cd backend && npm run build
+  OK (tsc && tsc-alias)
+$ npx tsc --noEmit
+  OK
+$ npm run audit:routes
+  ... POST /api/v1/audit-logs/list present
+  TOTAL 51
+  GET 0
+
+== Live QA (PORT=4106 nohup, server started from dist) ==
+Bidan login: 200 (token issued)
+Admin login: 200 (token issued)
+
+POST /api/v1/audit-logs/list {} (Bidan, Bearer) => 200
+  status=success, rows returned (total=300, meta present), ordered by created_at DESC.
+  Sample: includes VIEW_RME and other aksi; nilai_lama/nilai_baru parsed objects; no password values exposed.
+
+POST /api/v1/audit-logs/list {"aksi":"VIEW_RME"} (Bidan) => 200
+  status=success, total=7, every row aksi="VIEW_RME" only.
+
+POST /api/v1/audit-logs/list {} (Admin, Bearer) => 403
+  {"status":"error","error_code":"ERR-AUTH-03","message":"Peran tidak diizinkan","errors":[]}
+
+QA server stopped after tests.
