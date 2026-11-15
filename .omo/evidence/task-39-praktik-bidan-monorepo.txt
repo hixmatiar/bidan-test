@@ -1,0 +1,69 @@
+TASK 39 - Final install, typecheck, build and route audit
+Date: 2026-11-15
+CWD: /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan
+
+== Plan (lines 524-531 context from grep/read) ==
+- [ ] 39. Final install, typecheck, build and route audit for both apps (line 516 in plan)
+  backend: npm install, npx tsc --noEmit, npm run build, npm run audit:routes
+  frontend: npm install, npm run typecheck, npx tsc --noEmit, npm run build
+  Confirm backend/dist, frontend/dist/index.html exist, audit 51 routes 0 GET, no tracked .env.
+  Negative: scratch TS type error -> tsc --noEmit fails, then deleted.
+
+== Backend ==
+$ cd backend && nohup npm install --no-audit --no-fund > /tmp/task39-be-install.log 2>&1 & (background, completed)
+  tail: "added 1 package in 552ms" (exit 0)
+
+$ cd backend && npx tsc --noEmit
+  exit: 0
+
+$ cd backend && npm run build
+  > praktik-bidan-backend@1.0.0 build
+  > tsc && tsc-alias
+  exit: 0
+
+$ cd backend && npm run audit:routes
+  51 route lines printed (DELETE/PATCH/POST only), endpoints include all /api/v1/* from spec
+  TOTAL 51
+  GET 0
+  exit: 0
+
+== Frontend ==
+$ cd frontend && nohup npm install --no-audit --no-fund > /tmp/task39-fe-install.log 2>&1 & (background, completed)
+  tail: "added 1 package in 467ms" (exit 0)
+
+$ cd frontend && npm run typecheck
+  > frontend@0.0.0 typecheck
+  > tsc -p tsconfig.app.json --noEmit
+  exit: 0
+
+$ cd frontend && npx tsc --noEmit
+  exit: 0
+
+$ cd frontend && npm run build
+  > frontend@0.0.0 build
+  > tsc -b && vite build
+  vite v5.4.21 building for production... ✓ 44 modules transformed.
+  dist/index.html, dist/assets/*.css, dist/assets/*.js emitted. ✓ built in 803ms
+  exit: 0
+
+== Artifacts ==
+$ ls -d backend/dist && ls frontend/dist/index.html
+  backend/dist
+  frontend/dist/index.html
+  DISTS_OK
+
+== Tracked .env check ==
+$ git ls-files | grep '\.env$' || echo "NO_TRACKED_ENV"
+  NO_TRACKED_ENV
+
+== Negative check ==
+Created backend/src/__scratch_type_error__.ts: const badNumber: number = "this should fail";
+$ cd backend && npx tsc --noEmit
+  exit: 2
+  src/__scratch_type_error__.ts(1,7): error TS2322: Type 'string' is not assignable to type 'number'.
+$ rm -f backend/src/__scratch_type_error__.ts (SCRATCH_REMOVED)
+
+== Notes ==
+- No product code modified (no build/type errors surfaced).
+- No servers left running.
+- dbo.users/hashes not modified.
