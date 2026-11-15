@@ -1,0 +1,29 @@
+Task 33 - cron jobs reminder H-1 and inventory weekly
+
+Implemented (per plan lines 468-475):
+- backend/src/jobs/reminderH1.job.ts: schedules env.CRON_REMINDER_H1 with { timezone: 'Asia/Jakarta' }; runReminderH1() finds tomorrow (Asia/Jakarta) MENUNGGU reservations without a PENGINGAT_H1 log today, inserts log_notifikasi ANTRE->via insertLog (initial GAGAL) with jenis PENGINGAT_H1, sends WA, updates TERKIRIM/GAGAL.
+- backend/src/jobs/inventoryWeekly.job.ts: schedules env.CRON_INVENTORY_WEEKLY; runInventoryWeekly() builds summary of items with fn_status_stok/v_inventaris_status in HABIS/MENIPIS/KEDALUWARSA, sends to ADMIN phone, inserts one INVENTARIS log row (null reservasi_id) and updates status.
+- backend/src/jobs/index.ts: registers both only when NODE_ENV !== 'test', logs schedules, catches errors so a job never crashes the process. Exports runReminderH1/runInventoryWeekly.
+No dbo.users or password hashes modified.
+
+Build/verification:
+1) cd backend && npm run build  => OK (tsc && tsc-alias)
+2) cd backend && npx tsc --noEmit => OK
+3) cd backend && npm run audit:routes => TOTAL 51 / GET 0
+4) cron.validate: REMINDER_OK=true (0 8 * * *), INVENTORY_OK=true (0 7 * * 1), BAD=false
+5) Server start: PORT=4106 NODE_ENV=development nohup node dist/server.js (PID 41445)
+   Log:
+     [jobs] reminder H-1 terjadwal: 0 8 * * * (Asia/Jakarta)
+     [jobs] inventaris mingguan terjadwal: 0 7 * * 1 (Asia/Jakarta)
+     Praktik Bidan API listening on port 4106 (development)
+6) runInventoryWeekly() (direct import from dist): WA to example.invalid -> GAGAL (timeout), process/job not crashed.
+   [jobs] gagal kirim ringkasan inventaris AppError: Pengiriman WhatsApp gagal: timeout atau koneksi terputus (ERR-NTF-01)
+   [jobs] ringkasan inventaris selesai, items=1, status=GAGAL
+   INV_NOTIF_ID 973C433E-F36B-1410-864D-00CA0D54CA7B
+   DB log_notifikasi row (jenis=INVENTARIS): notif_id=973C433E-F36B-1410-864D-00CA0D54CA7B status=GAGAL reservasi_id=NULL created_at=2026-11-15 01:21:39 retry_count=0
+7) runReminderH1() (direct import from dist): seeded one tomorrow MENUNGGU reservation (sesi 993C433E-F36B-1410-864D-00CA0D54CA7B 2026-11-16, reservasi 9A3C433E-F36B-1410-864D-00CA0D54CA7B, pasien 081346768259). WA example.invalid -> GAGAL, process alive.
+   [jobs] gagal kirim PENGINGAT_H1 AppError: Pengiriman WhatsApp gagal: timeout atau koneksi terputus (ERR-NTF-01)
+   [jobs] reminder H-1 selesai, diproses=1
+   REMINDER_PROCESSED=1
+   DB log_notifikasi row (jenis=PENGINGAT_H1): notif_id=9E3C433E-F36B-1410-864D-00CA0D54CA7B status=GAGAL reservasi_id=9A3C433E-F36B-1410-864D-00CA0D54CA7B created_at=2026-11-15 01:22:31 retry_count=0
+   Server process still alive after direct run (SERVER_ALIVE_AFTER_REMINDER), then stopped cleanly.
