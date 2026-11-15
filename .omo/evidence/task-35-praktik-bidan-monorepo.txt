@@ -1,0 +1,11 @@
+Task 35: Scaffold frontend/ (Vite 5.4 + React 18.3 + TypeScript + Tailwind v3)
+
+- Created frontend/ manually: package.json (react 18.3.1, react-dom 18.3.1, vite ^5.4.0, @vitejs/plugin-react ^4.3.0, typescript ^5.6.0, @types/react 18.3.x, @types/react-dom 18.3.x, @types/node ^22, tailwindcss ^3.4.0, postcss ^8.4.0, autoprefixer ^10.4.0, tailwindcss-animate, class-variance-authority, clsx, tailwind-merge, lucide-react, @radix-ui/react-slot, @radix-ui/react-label, react-router-dom ^6, axios ^1, recharts ^2), index.html, vite.config.ts (@ alias via fileURLToPath(new URL('./src', import.meta.url))), tsconfig.json/tsconfig.app.json/tsconfig.node.json, postcss.config.js (ESM), tailwind.config.js (ESM, darkMode class, shadcn tokens, tailwindcss-animate), .env.example, src/vite-env.d.ts, src/main.tsx, src/index.css with shadcn HSL :root/.dark vars + Tailwind directives + base rules. Scripts: dev/build/typecheck/preview. No routes/pages/api clients/charts.
+- npm install run in background: `cd frontend && nohup npm install --no-audit --no-fund > ../.omo/scratch/npm-install.log 2>&1 &` (pid logged). Completed successfully (added 204 packages).
+- Verifications:
+  - `cd frontend && npm run typecheck` => EXIT:0
+  - `cd frontend && npm run build` => EXIT:0, created dist/index.html (and assets)
+  - Tailwind binary: `./node_modules/.bin/tailwindcss --help` => tailwindcss v3.4.19 (v3)
+- QA scenarios:
+  - Happy: build output exists (dist/index.html present).
+  - Failure (alias wired, before task 36): temporarily set App to import `@/lib/utils` (cn) -> `npm run typecheck` failed with TS2307 "Cannot find module '@/lib/utils'..." (EXIT:2), then restored App and typecheck EXIT:0. Proves @ alias is wired and utils not yet present.
