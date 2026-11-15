@@ -9,7 +9,7 @@
       "session_ids": [
         "opencode:ses_e2c4a89cfffelUbphya5LfGMXT"
       ],
-      "status": "active",
+      "status": "completed",
       "worktree_path": null,
       "started_at": "2026-11-13T08:46:19Z",
       "delivery_mode": "direct",
@@ -41,7 +41,9 @@
           "elapsed_ms": 31241
         }
       },
-      "updated_at": "2026-11-13T09:04:56.464Z"
+      "updated_at": "2026-11-13T09:04:56.464Z",
+      "ended_at": "2026-11-15T02:16:41Z",
+      "elapsed_ms": 149422671
     }
   },
   "session_ids": [
