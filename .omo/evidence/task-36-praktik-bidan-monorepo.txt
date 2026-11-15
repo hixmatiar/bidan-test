@@ -1,0 +1,13 @@
+Task 36: shadcn/ui config, cn util, five components and typed starter App
+
+- Added components.json ($schema, style "new-york", rsc:false, tsx:true, tailwind config/css/baseColor/cssVariables, aliases components/utils/ui/lib/hooks).
+- Added src/lib/utils.ts exporting cn(...inputs) from clsx + twMerge.
+- Added src/components/ui/button.tsx (cva variants default/secondary/outline/ghost/destructive + sizes, asChild via Radix Slot), card.tsx (Card/Header/Title/Description/Content/Footer), input.tsx, label.tsx (Radix Label), badge.tsx (cva variants).
+- Replaced src/App.tsx with typed starter: centered layout, title "Sistem Digitalisasi Praktik Mandiri Bidan", subtitle "Praktik Mandiri Bdn. Ria Indrasti J., S.Keb", Card with description, Label+Input (placeholder only), Badge, Button - all from @/components/ui/*. No state, no data fetching, no router.
+- Verifications:
+  - `cd frontend && npm run typecheck` => TYPE_EXIT:0
+  - `cd frontend && npm run build` => BUILD_EXIT:0 (dist rebuilt)
+  - App imports all five components from @/components/ui/*; `grep -c "@/" src/App.tsx` => 5; ui import lines => 5
+- QA scenarios:
+  - Happy: build succeeds (preview-ready card/button layout).
+  - Failure: temporarily set `<Button variant="nope">` -> typecheck failed (TS2322 '"nope"' not assignable..., INVALID_EXIT:2), then reverted and typecheck REVERT_EXIT:0.
