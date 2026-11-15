@@ -1,0 +1,92 @@
+== build ==
+
+> praktik-bidan-backend@1.0.0 build
+> tsc && tsc-alias
+
+
+== tsc ==
+
+== audit:routes ==
+
+> praktik-bidan-backend@1.0.0 audit:routes
+> tsx src/scripts/route-audit.ts
+
+DELETE /api/v1/konten/:id
+PATCH /api/v1/alergi/:id
+PATCH /api/v1/inventaris/:id
+PATCH /api/v1/konten/:id
+PATCH /api/v1/kunjungan/:id/catatan
+PATCH /api/v1/reservasi/:id/batal
+PATCH /api/v1/reservasi/:id/jadwal
+PATCH /api/v1/reservasi/:id/status
+PATCH /api/v1/sesi/:id
+POST /api/v1/audit-logs/list
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/refresh
+POST /api/v1/auth/reset/request
+POST /api/v1/auth/reset/verify
+POST /api/v1/harga/:ref_tipe/:ref_id/riwayat/list
+POST /api/v1/harga/list
+POST /api/v1/inventaris
+POST /api/v1/inventaris/:id/restock
+POST /api/v1/inventaris/:id/riwayat/list
+POST /api/v1/inventaris/list
+POST /api/v1/keuangan/rekap/list
+POST /api/v1/konten
+POST /api/v1/konten/list
+POST /api/v1/kunjungan/:id/tagihan/detail
+POST /api/v1/laporan/export
+POST /api/v1/laporan/jam-tersibuk/list
+POST /api/v1/laporan/perbandingan/list
+POST /api/v1/laporan/ringkasan/list
+POST /api/v1/laporan/tren-layanan/list
+POST /api/v1/notifikasi/:id/kirim-ulang
+POST /api/v1/notifikasi/log/list
+POST /api/v1/pasien/:id/alergi
+POST /api/v1/pasien/:id/kunjungan
+POST /api/v1/pasien/:id/red-flag/konfirmasi
+POST /api/v1/pasien/:id/rme/detail
+POST /api/v1/pasien/:id/rme/export
+POST /api/v1/pasien/identitas/list
+POST /api/v1/pasien/list
+POST /api/v1/pasien/walk-in
+POST /api/v1/public/konten/list
+POST /api/v1/public/layanan/list
+POST /api/v1/public/pasien/cek
+POST /api/v1/public/reservasi
+POST /api/v1/public/sesi/list
+POST /api/v1/reservasi/list
+POST /api/v1/sesi
+POST /api/v1/sesi/list
+POST /api/v1/tagihan/:id/pembayaran
+POST /api/v1/tagihan/list
+PUT /api/v1/harga/:ref_tipe/:ref_id
+TOTAL 51
+GET 0
+
+== server ==
+pid=30649
+Praktik Bidan API listening on port 4106 (development)
+
+== admin login ==
+{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzk0NzA0MzAwLCJleHAiOjE3OTQ3MDYxMDAsInN1YiI6IjNGQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.Lz-lQNYhfBxi700Ba2_wIINYkh5bNCfzij0gmZkjlaU","expires_in":1800,"user":{"user_id":"3FCB423E-F36B-1410-864C-00CA0D54CA7B","username":"admin","role":"ADMIN","nama_lengkap":"Admin Praktik Bidan"}},"message":"Login berhasil"}
+200
+
+== bidan login ==
+{"status":"success","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJpZGFuIiwicm9sZSI6IkJJREFOIiwiaWF0IjoxNzk0NzA0MzAxLCJleHAiOjE3OTQ3MDYxMDEsInN1YiI6IjNEQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.ammraqeh0HUt_M0hikxGoI0tn2SMDVnNM8hUpWduUfE","expires_in":1800,"user":{"user_id":"3DCB423E-F36B-1410-864C-00CA0D54CA7B","username":"bidan","role":"BIDAN","nama_lengkap":"Bidan Siti Rahmawati"}},"message":"Login berhasil"}
+200
+
+== POST /notifikasi/log/list (admin) ==
+{"status":"success","data":[{"notif_id":"7D3C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"AC7EBD96-3C02-48A0-AB04-719CADC0CFE8","jenis":"PERUBAHAN","no_telepon":"081363221396","pesan":"Reservasi praktik Bidan diperbarui.\nStatus: DIBATALKAN\nNomor antrean: 3\nTanggal: 2026-11-15\nEstimasi jam: 08:30:00\nLayanan: Pemeriksaan Kehamilan (ANC)","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:48:08.000Z"},{"notif_id":"793C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"AC7EBD96-3C02-48A0-AB04-719CADC0CFE8","jenis":"KONFIRMASI","no_telepon":"081363221396","pesan":"Reservasi praktik Bidan berhasil.\nNomor antrean: 3\nTanggal: 2026-11-15\nEstimasi jam: 08:30:00\nLayanan: Pemeriksaan Kehamilan (ANC)\nMohon datang 10 menit sebelum jadwal.","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:48:08.000Z"},{"notif_id":"693C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"3504F030-F0C8-4D32-B228-44448B794F8D","jenis":"PERUBAHAN","no_telepon":"081214255266","pesan":"Reservasi praktik Bidan diperbarui.\nStatus: MENUNGGU\nNomor antrean: 4\nTanggal: 2026-11-16\nEstimasi jam: 08:45:00\nLayanan: Imunisasi Bayi","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:47:48.000Z"},{"notif_id":"653C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"3504F030-F0C8-4D32-B228-44448B794F8D","jenis":"KONFIRMASI","no_telepon":"081214255266","pesan":"Reservasi praktik Bidan berhasil.\nNomor antrean: 3\nTanggal: 2026-11-15\nEstimasi jam: 08:30:00\nLayanan: Imunisasi Bayi\nMohon datang 10 menit sebelum jadwal.","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:47:47.000Z"},{"notif_id":"523C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"3459DA19-C3B2-4929-8492-43CBF003C086","jenis":"PERUBAHAN","no_telepon":"081273696736","pesan":"Reservasi praktik Bidan diperbarui.\nStatus: MENUNGGU\nNomor antrean: 3\nTanggal: 2026-11-16\nEstimasi jam: 08:30:00\nLayanan: Imunisasi Bayi","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:47:32.000Z"},{"notif_id":"4F3C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"3459DA19-C3B2-4929-8492-43CBF003C086","jenis":"KONFIRMASI","no_telepon":"081273696736","pesan":"Reservasi praktik Bidan berhasil.\nNomor antrean: 3\nTanggal: 2026-11-15\nEstimasi jam: 08:30:00\nLayanan: Imunisasi Bayi\nMohon datang 10 menit sebelum jadwal.","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:47:31.000Z"},{"notif_id":"4E3C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"E515D398-0659-45F0-A3CC-69F0AE1759DF","jenis":"PERUBAHAN","no_telepon":"081297782376","pesan":"Reservasi praktik Bidan diperbarui.\nStatus: MENUNGGU\nNomor antrean: 2\nTanggal: 2026-11-16\nEstimasi jam: 08:15:00\nLayanan: Imunisasi Bayi","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:38:11.000Z"},{"notif_id":"493C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"E515D398-0659-45F0-A3CC-69F0AE1759DF","jenis":"KONFIRMASI","no_telepon":"081297782376","pesan":"Reservasi praktik Bidan berhasil.\nNomor antrean: 3\nTanggal: 2026-11-15\nEstimasi jam: 08:30:00\nLayanan: Imunisasi Bayi\nMohon datang 10 menit sebelum jadwal.","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:38:10.000Z"},{"notif_id":"453C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"48F7A7BE-4F0A-462A-A3D3-FC754A753031","jenis":"PERUBAHAN","no_telepon":"081257880183","pesan":"Reservasi praktik Bidan diperbarui.\nStatus: MENUNGGU\nNomor antrean: 1\nTanggal: 2026-11-16\nEstimasi jam: 08:00:00\nLayanan: Imunisasi Bayi","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:37:49.000Z"},{"notif_id":"3E3C433E-F36B-1410-864D-00CA0D54CA7B","reservasi_id":"48F7A7BE-4F0A-462A-A3D3-FC754A753031","jenis":"KONFIRMASI","no_telepon":"081257880183","pesan":"Reservasi praktik Bidan berhasil.\nNomor antrean: 3\nTanggal: 2026-11-15\nEstimasi jam: 08:30:00\nLayanan: Imunisasi Bayi\nMohon datang 10 menit sebelum jadwal.","status":"GAGAL","retry_count":0,"waktu_kirim":null,"created_at":"2026-11-14T23:37:48.000Z"}],"message":"Berhasil","meta":{"current_page":1,"per_page":10,"total":14,"last_page":2}}
+HTTP 200
+
+== POST /notifikasi/:id/kirim-ulang unknown uuid (admin) ==
+{"status":"error","error_code":"ERR-NTF-01","message":"Log notifikasi tidak ditemukan","errors":[]}
+HTTP 404
+
+== POST /notifikasi/log/list (bidan 403) ==
+{"status":"error","error_code":"ERR-AUTH-03","message":"Peran tidak diizinkan","errors":[]}
+HTTP 403
+
+== done ==
