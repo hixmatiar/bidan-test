@@ -1,0 +1,11 @@
+Task 28 - Revenue comparison decomposition
+Status: IMPLEMENTED, LIVE QA BLOCKED (login)
+
+Endpoint: POST /laporan/perbandingan/list body {periode_a:{dari,sampai}, periode_b:{dari,sampai}, grup?:'LAYANAN'} (BIDAN)
+- Per layanan: V0/P0 (qty & avg price period A), V1/P1 (period B) from kunjungan+tagihan.
+- Returns volume_effect=(V1-V0)*P0, price_effect=V0*(P1-P0), interaction=(V1-V0)*(P1-P0), delta=V1*P1-V0*P0, totals, meta.formula="delta = volume_effect + price_effect + interaction". Rounded to 0.01.
+- Validation: missing/invalid periods or overlapping ranges -> 422 ERR-RPT-01; schema issues -> ERR-VAL-01.
+
+Build/verify: npm run build OK, npx tsc --noEmit OK, audit:routes TOTAL 51 / GET 0.
+
+Live QA BLOCKED: bidan/admin login returns ERR-AUTH-01 (see task-27 evidence); cannot obtain tokens for happy-path identity assertion or 422/403 checks without modifying dbo.users/password hashes.
