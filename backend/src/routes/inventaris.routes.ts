@@ -1,19 +1,19 @@
 import { Router } from 'express';
-import {
-  listRiwayatStok,
-  restockInventaris,
-} from '@/controllers/inventaris.controller';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
 import { dbSessionContext } from '@/middlewares/dbSession';
 import { validate } from '@/middlewares/validate';
 import {
   createInventaris,
   listInventaris,
+  listRiwayatStok,
+  restockInventaris,
   updateInventaris,
 } from '@/modules/inventaris/inventaris.controller';
 import {
   createInventarisSchema,
   idParamSchema,
+  restockInventarisSchema,
+  riwayatStokListSchema,
   updateInventarisSchema,
 } from '@/modules/inventaris/inventaris.validators';
 
@@ -34,7 +34,17 @@ router.patch(
   validate({ params: idParamSchema, body: updateInventarisSchema }),
   updateInventaris,
 );
-router.post('/:id/restock', checkRole('ADMIN'), restockInventaris);
-router.post('/:id/riwayat/list', checkRole('ADMIN', 'BIDAN'), listRiwayatStok);
+router.post(
+  '/:id/restock',
+  checkRole('ADMIN'),
+  validate({ params: idParamSchema, body: restockInventarisSchema }),
+  restockInventaris,
+);
+router.post(
+  '/:id/riwayat/list',
+  checkRole('ADMIN', 'BIDAN'),
+  validate({ params: idParamSchema, body: riwayatStokListSchema }),
+  listRiwayatStok,
+);
 
 export default router;

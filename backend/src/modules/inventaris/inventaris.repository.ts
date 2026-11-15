@@ -4,6 +4,8 @@ import { AppError } from '@/utils/errors';
 import type {
   CreateInventarisInput,
   ListInventarisFilter,
+  RestockInventarisInput,
+  RiwayatStokListFilter,
   UpdateInventarisInput,
 } from './inventaris.validators';
 
@@ -20,6 +22,20 @@ export interface InventarisRow {
   is_active: boolean;
   created_at: Date;
   updated_at: Date | null;
+}
+
+export interface RiwayatStokRow {
+  riwayat_id: string;
+  item_id: string;
+  nama_item: string;
+  satuan: string;
+  kunjungan_id: string | null;
+  user_id: string | null;
+  username: string | null;
+  jenis: string;
+  jumlah: number;
+  keterangan: string | null;
+  tanggal: Date;
 }
 
 const SELECT_COLUMNS = `
@@ -177,6 +193,17 @@ export async function create(
   });
 }
 
+export async function exists(
+  conn: sql.ConnectionPool,
+  itemId: string,
+): Promise<boolean> {
+  const result = await conn
+    .request()
+    .input('item_id', sql.UniqueIdentifier, itemId)
+    .query('SELECT 1 AS ada FROM dbo.item_inventaris WHERE item_id = @item_id');
+  return result.recordset.length > 0;
+}
+
 export async function update(
   conn: sql.ConnectionPool,
   itemId: string,
@@ -253,4 +280,83 @@ export async function update(
 
     return findRow(tx, itemId);
   });
+}
+
+export async function restock(
+  conn: sql.ConnectionPool,
+  itemId: string,
+  input: RestockInventarisInput,
+  userId: string | null,
+  ip: string | null,
+): Promise<{ item_id: string; stok: number }> {
+  const request = conn
+    .request()
+    .input('item_id', sql.UniqueIdentifier, itemId)
+    .input('jumlah', sql.Decimal(10, 2), input.jumlah)
+    .input(
+      'harga_beli',
+      sql.Decimal(18, 2),
+      input.harga_beli !== undefined ? input.harga_beli : null,
+    )
+    .input(
+      'tgl_kedaluwarsa',
+      sql.VarChar(10),
+      input.tgl_kedaluwarsa !== undefined ? input.tgl_kedaluwarsa : null,
+    )
+    .input('user_id', sql.UniqueIdentifier, userId)
+    .input('ip', sql.NVarChar(45), ip);
+
+  const result = await request.execute('sp_restock_item');
+  const rows = result.recordset as { item_id: string; stok: number }[];
+  if (rows.length === 0) throw new AppError('ERR-SYS-02');
+  return rows[0];
+}
+
+export async function listRiwayat(
+  conn: sql.ConnectionPool,
+  itemId: string,
+  filter: RiwayatStokListFilter,
+  page: number,
+  perPage: number,
+): Promise<{ rows: RiwayatStokRow[]; total: number }> {
+  const where = ['item_id = @item_id'];
+  const request = conn.request().input('item_id', sql.UniqueIdentifier, itemId);
+  if (filter.jenis) {
+    where.push('jenis = @jenis');
+    request.input('jenis', sql.VarChar(10), filter.jenis);
+  }
+  if (filter.tanggal_dari) {
+    where.push('CAST(tanggal AS DATE) >= CAST(@tanggal_dari AS DATE)');
+    request.input('tanggal_dari', sql.VarChar(10), filter.tanggal_dari);
+  }
+  if (filter.tanggal_sampai) {
+    where.push('CAST(tanggal AS DATE) <= CAST(@tanggal_sampai AS DATE)');
+    request.input('tanggal_sampai', sql.VarChar(10), filter.tanggal_sampai);
+  }
+  const whereSql = `WHERE ${where.join(' AND ')}`;
+  const offset = (page - 1) * perPage;
+
+  const countResult = await request.query(`
+    SELECT COUNT(*) AS total
+    FROM dbo.v_riwayat_stok_item
+    ${whereSql}
+  `);
+
+  const rowsResult = await request
+    .input('offset', sql.Int, offset)
+    .input('per_page', sql.Int, perPage)
+    .query(`
+      SELECT
+        riwayat_id, item_id, nama_item, satuan, kunjungan_id, user_id,
+        username, jenis, jumlah, keterangan, tanggal
+      FROM dbo.v_riwayat_stok_item
+      ${whereSql}
+      ORDER BY tanggal DESC, riwayat_id DESC
+      OFFSET @offset ROWS FETCH NEXT @per_page ROWS ONLY
+    `);
+
+  return {
+    rows: rowsResult.recordset as RiwayatStokRow[],
+    total: Number((countResult.recordset[0] as { total: number }).total),
+  };
 }

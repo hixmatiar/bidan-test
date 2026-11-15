@@ -4,9 +4,10 @@ import { AppError } from '@/utils/errors';
 import { buildMeta, parsePagination } from '@/utils/pagination';
 import { ok } from '@/utils/response';
 import * as service from './inventaris.service';
-import { parseListInventaris } from './inventaris.validators';
+import { parseListInventaris, parseRiwayatStokList } from './inventaris.validators';
 import type {
   CreateInventarisInput,
+  RestockInventarisInput,
   UpdateInventarisInput,
 } from './inventaris.validators';
 
@@ -69,6 +70,48 @@ export async function updateInventaris(
     );
 
     ok(res, row, 'Item inventaris berhasil diperbarui');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function restockInventaris(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const row = await service.restockInventaris(
+      connection(res),
+      req.params.id,
+      req.body as RestockInventarisInput,
+      req.user?.user_id ?? null,
+      req.ip ?? null,
+    );
+
+    ok(res, row, 'Stok berhasil ditambahkan');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listRiwayatStok(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const { current_page, per_page } = parsePagination(req.body);
+    const filter = parseRiwayatStokList(req.body);
+    const { rows, total } = await service.listRiwayatStok(
+      connection(res),
+      req.params.id,
+      filter,
+      current_page,
+      per_page,
+    );
+
+    ok(res, rows, 'Berhasil', buildMeta(total, current_page, per_page));
   } catch (error) {
     next(error);
   }

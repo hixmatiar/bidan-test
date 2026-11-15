@@ -49,9 +49,34 @@ export const updateInventarisSchema = z
 
 export const idParamSchema = z.object({ id: z.string().uuid() });
 
+export const restockInventarisSchema = z.object({
+  jumlah: z.number().gt(0, 'Jumlah harus lebih dari nol'),
+  harga_beli: nonNegative.optional(),
+  tgl_kedaluwarsa: dateOnly.nullable().optional(),
+});
+
+export const riwayatStokListSchema = z
+  .object({
+    jenis: z.enum(['RESTOCK', 'DEDUCT', 'ADJUST']).optional(),
+    tanggal_dari: dateOnly.optional(),
+    tanggal_sampai: dateOnly.optional(),
+  })
+  .refine(
+    (value) =>
+      !value.tanggal_dari ||
+      !value.tanggal_sampai ||
+      value.tanggal_dari <= value.tanggal_sampai,
+    {
+      message: 'tanggal_dari tidak boleh setelah tanggal_sampai',
+      path: ['tanggal_dari'],
+    },
+  );
+
 export type ListInventarisFilter = z.infer<typeof listInventarisSchema>;
 export type CreateInventarisInput = z.infer<typeof createInventarisSchema>;
 export type UpdateInventarisInput = z.infer<typeof updateInventarisSchema>;
+export type RestockInventarisInput = z.infer<typeof restockInventarisSchema>;
+export type RiwayatStokListFilter = z.infer<typeof riwayatStokListSchema>;
 
 function toDetails(error: z.ZodError): ApiErrorDetail[] {
   return error.issues.map((issue) => ({
@@ -63,6 +88,14 @@ function toDetails(error: z.ZodError): ApiErrorDetail[] {
 // List filters/pagination use the report/filter validation code.
 export function parseListInventaris(body: unknown): ListInventarisFilter {
   const parsed = listInventarisSchema.safeParse(body ?? {});
+  if (!parsed.success) {
+    throw new AppError('ERR-VAL-03', undefined, toDetails(parsed.error));
+  }
+  return parsed.data;
+}
+
+export function parseRiwayatStokList(body: unknown): RiwayatStokListFilter {
+  const parsed = riwayatStokListSchema.safeParse(body ?? {});
   if (!parsed.success) {
     throw new AppError('ERR-VAL-03', undefined, toDetails(parsed.error));
   }
