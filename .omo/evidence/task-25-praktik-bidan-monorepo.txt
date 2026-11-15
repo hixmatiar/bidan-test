@@ -1,0 +1,25 @@
+TASK 25 - Restock & stock history
+Date: 2026-11-15
+
+Implemented
+- Moved restock/list riwayat stok into module: backend/src/modules/inventaris/{inventaris.validators.ts,inventaris.repository.ts,inventaris.service.ts,inventaris.controller.ts}
+- Updated route wiring/validation: backend/src/routes/inventaris.routes.ts
+  - POST /inventaris/:id/restock (ADMIN) validates {jumlah>0, harga_beli?, tgl_kedaluwarsa?} and calls sp_restock_item (no direct stock mutation)
+  - POST /inventaris/:id/riwayat/list (ADMIN,BIDAN) validates jenis/tanggal_dari/tanggal_sampai + pagination, reads dbo.v_riwayat_stok_item
+- Removed unused stub: backend/src/controllers/inventaris.controller.ts
+
+Verification
+- cd backend && npm run build : OK
+- cd backend && npx tsc --noEmit --incremental false : OK
+- cd backend && npm run audit:routes : TOTAL 51 / GET 0
+
+Live QA (PORT=4106, nohup node dist/server.js)
+- Admin login (admin/Admin#2026): 200
+- Bidan login (bidan/Bidan#2026): 200
+- Item tested: 5FCB423E-F36B-1410-864C-00CA0D54CA7B "Alkohol 70% 100 ml", stok before 20
+- POST /inventaris/:id/restock (admin, {jumlah:3}): 200 {"status":"success","data":{"item_id":"...","stok":23},"message":"Stok berhasil ditambahkan"}; stok bertambah 20 -> 23
+- POST /inventaris/:id/riwayat/list (bidan): 200, latest row jenis=RESTOCK jumlah=3 keterangan="Restock" user admin (MASUK/restock row present)
+- POST /inventaris/:id/restock (bidan): 403 ERR-AUTH-03 "Peran tidak diizinkan"
+
+Restore
+- Attempted compensating adjustment via direct SQL (stok-3 + INSERT riwayat_stok jenis ADJUST) failed: CHECK constraint CK_riwayat_stok_jenis on dbo.riwayat_stok rejected ADJUST; transaction rolled back. sp_restock_item does not allow non-positive jumlah. No compensating adjustment possible via allowed SP/path; item stock left at 23 (QA +3). dbo.users/password hashes not modified.

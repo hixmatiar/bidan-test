@@ -1,0 +1,5 @@
+node backend/docs/postman/generate-postman.mjs => exit 0
+folders=11 requests=51 described=51 bearer_headers=43 schema=https://schema.getpostman.com/json/collection/v2.1.0/collection.json
+env_keys=baseUrl,token,user_id,pasien_id,sesi_id,reservasi_id,kunjungan_id,tagihan_id,item_id,username_bidan,password_bidan,username_admin,password_admin
+delete-one-spec assertion: regenerated collection had 50 requests (expected 51) -> failed, then restored.
+npm run audit:routes => TOTAL 51 GET 0

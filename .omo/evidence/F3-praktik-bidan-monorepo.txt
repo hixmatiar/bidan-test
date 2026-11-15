@@ -1,0 +1,116 @@
+F3 - Real manual QA (PraktikBidan monorepo)
+Date: 2026-11-15
+Target: local SQL Server 2025 in docker container `sql_server_pikachen` (DB PraktikBidan), backend (dist build) on PORT=4106 via nohup
+Policy: NO code modified. NO server left running at the end (4106/4107 both stopped, ports verified free). .omo/evidence/task-38-smoke.json NOT overwritten (smoke written to F3-smoke.json).
+Overall result: PASS
+
+== 0) Environment reachability ==
+$ docker exec sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -I -C -S localhost -U sa -P "$P" -Q "SELECT @@VERSION"
+Microsoft SQL Server 2025 (RTM-CU9) (KB5122048) - 17.0.5005.3 (X64)  ... reachable OK.
+Pre-test dbo.users snapshot: bidan + admin hashes match 05_seed.sql exactly, failed_attempts=0, not locked. (saved output; hashes redacted here, seed hashes are public in 05_seed.sql)
+
+== 1) Backend boot on PORT=4106 ==
+$ cd backend && PORT=4106 nohup node dist/server.js > /tmp/f3-server-4106.log 2>&1 &
+Boot log: jobs scheduled (reminder H-1 0 8 * * *; inventaris weekly Mon 07:00), "Praktik Bidan API listening on port 4106 (development)".
+NOTE (environment): the backgrounded server received an external SIGTERM twice during the session (environment reaper of detached processes), each time logging "SIGTERM received, shutting down" and exiting cleanly. First instance (PID 59109) died after the 403 tests, before the export test; it was restarted (PID 61280) and later died again mid 429-loop; restarted once more (PID in /tmp/f3-server-4106c.log) and all remaining checks completed. All steps below ran against a healthy 4106 instance; smoke ran on the first instance.
+
+== 2) Smoke chain (backend/scripts/smoke-e2e.mjs, 19 checks) ==
+$ BASE_URL=http://127.0.0.1:4106 QUOTA_SESI_ID=CABCEA48-3F8F-4AC5-A33A-970FB1F33818 QUOTA_LAYANAN_ID=41CB423E-F36B-1410-864C-00CA0D54CA7B node backend/scripts/smoke-e2e.mjs .omo/evidence/F3-smoke.json
+19/19 steps OK, exit 0, paymentStatus=LUNAS. Steps:
+  1 login bidan 200 | 2 login admin 200 | 3 public layanan list 200
+  4 public sesi list 200 | 5 public sesi list (walk-in) 200 | 6 public reservasi new patient 201
+  7 walk-in as admin 201 | 8 RME detail as bidan (audit VIEW_RME) 200 | 9 red-flag confirm 200
+  10 inventaris list (best effort) OK | 11 create kunjungan (with resep) 201 | 12 tagihan detail 200
+  13 pembayaran full amount -> 201, status LUNAS | 14 audit logs list 200 | 15 red-flag confirm (2) 200
+  16 kunjungan for overpayment test 201 | 17 tagihan detail (overpay target) 200 | 18 overpayment -> 409
+  19 quota overrun -> 409
+Result: PASS (full machine-readable log in .omo/evidence/F3-smoke.json)
+
+== 3) Boot WITHOUT DB (DB_PASSWORD=wrong) ==
+$ DB_PASSWORD=wrong-f3-qa PORT=4107 nohup node dist/server.js  (separate instance, 1.5s before probing)
+POST /api/v1/public/layanan/list {"page":1,"per_page":5}:
+  {"status":"error","error_code":"ERR-SYS-02","message":"Kesalahan database","errors":[]}  HTTP 500, time 0.16s
+Second probe: HTTP 500, time 0.10s -- process does NOT hang; clean error envelope every time.
+Log: "ConnectionError: Login failed for user 'sa'." stack trace (NODE_ENV != production) - no crash, no unhandled rejection, jobs still scheduled.
+Instance killed after 3s+ probes (PID 59666); port 4107 verified free.
+Result: PASS
+
+== 4) Malformed JSON body -> 400 ==
+POST /api/v1/auth/login, Content-Type application/json, body '{"username": "bidan", '
+  {"status":"error","error_code":"ERR-VAL-04","message":"JSON tidak valid","errors":[]}  HTTP 400
+Result: PASS
+
+== 5) 401 no token ==
+POST /api/v1/audit-logs/list (no Authorization header)
+  {"status":"error","error_code":"ERR-AUTH-02","message":"Token tidak ada atau tidak valid","errors":[]}  HTTP 401
+Result: PASS
+
+== 6) 403 - ADMIN forbidden on /laporan (BIDAN-only mount) ==
+POST /api/v1/laporan/ringkasan/list  as admin token
+  {"status":"error","error_code":"ERR-AUTH-03","message":"Peran tidak diizinkan","errors":[]}  HTTP 403
+POST /api/v1/laporan/export (pdf)    as admin token
+  {"status":"error","error_code":"ERR-AUTH-03","message":"Peran tidak diizinkan","errors":[]}  HTTP 403
+Result: PASS
+
+== 7) 422 invalid body ==
+POST /api/v1/auth/login {"username":"bidan"}  (missing password)
+  HTTP 422 ERR-VAL-01, errors:[{path:"password",message:"Required"}]
+POST /api/v1/auth/login {"username":123,"password":true}  (wrong types)
+  HTTP 422 ERR-VAL-01, errors:[username "Expected string, received number", password "Expected string, received boolean"]
+Result: PASS
+
+== 8) 423 lock after 5 wrong logins (+ restore) ==
+POST /api/v1/auth/login {"username":"bidan","password":"WrongPassword#1"}  x6, sequential:
+  attempt 1: 401 ERR-AUTH-01 | attempt 2: 401 | attempt 3: 401 | attempt 4: 401
+  attempt 5: 423 ERR-LOCK-01 "Akun terkunci selama 15 menit"  (lock engaged on 5th failure)
+  attempt 6: 423 ERR-LOCK-01  (locked account rejected)
+Restore (exact, from backend/database/05_seed.sql):
+  UPDATE dbo.users SET password_hash = <seed>, failed_attempts = 0, locked_until = NULL for bidan and admin.
+  Post-restore SELECT: bidan/admin password_hash == seed hashes (byte-for-byte compare OK), failed_attempts=0, locked=0.
+  Post-restore logins: bidan 200 (success payload), admin 200.
+  dbo.users password hashes were NEVER left changed; seed state fully restored.
+Result: PASS
+
+== 9) 429 rate limit (applicable - RATE_LIMIT_PUBLIC=100, express-rate-limit v7) ==
+Fresh 4106 instance; loop POST /api/v1/public/konten/list {} (112 attempts):
+  requests 1-100 -> 200; requests 101-112 -> 429 (12x). Exactly 100 req/min window budget.
+Post-limit probe: HTTP 429
+  {"status":"error","error_code":"ERR-SYS-03","message":"Dependensi eksternal tidak tersedia atau rate limit","errors":[]}
+Result: PASS
+
+== 10) Downloads from POST /api/v1/laporan/export (BIDAN, format ringkasan, 2026-01-01..2026-11-15) ==
+PDF:   HTTP 200, Content-Type application/pdf, Content-Disposition attachment; filename="laporan-ringkasan-2026-11-15.pdf"
+       magic: 25 50 44 46 2d 31 2e 33 ("%PDF-1.3"), 1566 bytes, sha256 3b57816d50eacb674e27104ae2afc6959e6a7b79b4a3a0827978df2d6ac7bb66
+XLSX:  HTTP 200, Content-Type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, Content-Length 6562
+       magic: 50 4b 03 04 ("PK\x03\x04"), sha256 5327a8a84842d67f41e36c27040908f528de4d428cd1c4615fee03a01b0e3172
+       workbook parses via ExcelJS: sheet "Ringkasan", 2 rows.
+(artifacts at /tmp/f3-laporan.pdf, /tmp/f3-laporan.xlsx; logs at /tmp/f3-pdf.headers, /tmp/f3-xlsx.headers)
+Result: PASS
+
+== 11) Postman files ==
+backend/docs/postman/Praktik_Mandiri_Bidan_API.postman_collection.json
+  parses OK; info.schema = https://schema.getpostman.com/json/collection/v2.1.0/collection.json (v2.1)
+  requests (leaf items with "request") = 51; folders = 11 (all top-level, none nested)
+backend/docs/postman/Local_Dev.postman_environment.json
+  parses OK; _postman_variable_scope=environment; 13 variables
+Result: PASS
+
+== 12) Cleanup ==
+All backend processes killed (4106 instance SIGTERM'd by QA kill; 4107 already stopped). lsof on 4106/4107: no listeners. No server left running.
+DB side effects of QA (all expected): smoke rows (pasien, reservasi, kunjungan, tagihan, pembayaran, audit_logs, notification logs), 6 failed-login audits on bidan. dbo.users restored exactly to seed hashes + unlocked state.
+Code: NOT modified. No commits made.
+
+== SUMMARY ==
+ 19/19 smoke steps                     PASS
+ boot without DB -> clean 500 envelope PASS (no hang)
+ malformed JSON -> 400                 PASS
+ 401 no token                          PASS
+ 403 admin on laporan (x2 endpoints)   PASS
+ 422 invalid body (x2 payloads)        PASS
+ 423 lock after 5 wrong logins         PASS (+ hashes/lock restored & verified)
+ 429 rate limit                        PASS (100/min, ERR-SYS-03)
+ PDF export (%PDF)                     PASS
+ XLSX export (PK)                      PASS
+ Postman collection/environment        PASS (51 requests / 11 folders / v2.1)
+OVERALL F3: PASS
+Known environment quirk: detached nohup backends are intermittently SIGTERM'd by the session environment; every QA step was executed and verified against a live instance, and no server remains running.

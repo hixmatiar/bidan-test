@@ -1,0 +1,105 @@
+# F4 - Scope Fidelity (praktik-bidan-monorepo)
+
+## 1. Scope File Inventory comparison (from `.omo/plans/praktik-bidan-monorepo.md`)
+
+### Root (required: `README.md`, `.gitignore`)
+- `README.md`: PRESENT
+- `.gitignore`: PRESENT
+- Verdict: PASS
+
+### Backend required inventory
+- `package.json`, `tsconfig.json`, `.env.example`: PRESENT
+- `src/app.ts`, `src/server.ts`: PRESENT
+- `src/config/env.ts`: PRESENT
+- `src/types/api.ts`, `src/types/express.d.ts`: PRESENT
+- `src/utils/{errors,response,db,jwt,password,otp,wa,pdf,excel,pagination}.ts`:
+  - Present: errors, response, db, jwt, password, otp, wa, pdf, pagination
+  - **MISSING**: `src/utils/excel.ts` (Excel export implemented via `exceljs` in `src/modules/laporan/laporan.service.ts` instead)
+  - Extra present (not in inventory): `src/utils/date.ts`
+- `src/middlewares/{auth,dbSessionContext,validate,rateLimit,errorHandler,notFound}.ts`:
+  - Present: auth, validate, rateLimit, errorHandler
+  - **NAMING DIFFERS**: `src/middlewares/dbSession.ts` (inventory listed `dbSessionContext.ts`)
+  - **MISSING**: `src/middlewares/notFound.ts` (404 handling in `src/middlewares/errorHandler.ts` / app wiring)
+- `src/validators/*.ts`: **MISSING as top-level dir**; validators are colocated per-module (e.g. `src/modules/*/*.validators.ts`, `src/modules/public/validators.ts`)
+- `src/routes/*.ts`: PRESENT (16 route files under `src/routes/`)
+- `src/controllers/*.ts`: PRESENT (11 in `src/controllers/` plus controllers inside modules)
+- `src/services/*.ts`: **NOT as flat `src/services/*.ts`**; services colocated in `src/modules/*/*.service.ts` (and `src/modules/public/service.ts`)
+- `src/repositories/*.ts`: **NOT as flat `src/repositories/*.ts`**; repositories colocated in `src/modules/*/*.repository.ts` (and `src/modules/public/repository.ts`)
+- `src/jobs/{reminderH1.job,inventoryWeekly.job,index}.ts`: PRESENT
+- `src/scripts/route-audit.ts`: PRESENT
+- `database/01_schema.sql`..`05_seed.sql`: PRESENT (all 5)
+- `docs/postman/{generate-postman.mjs, Praktik_Mandiri_Bidan_API.postman_collection.json, Local_Dev.postman_environment.json}`: PRESENT
+
+### Frontend required inventory
+- `package.json`, `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `index.html`, `postcss.config.js`, `tailwind.config.js`, `components.json`, `.env.example`: PRESENT
+- `src/main.tsx`, `src/App.tsx`, `src/index.css`, `src/vite-env.d.ts`: PRESENT
+- `src/lib/utils.ts`: PRESENT
+- `src/components/ui/{button,card,input,label,badge}.tsx`: PRESENT
+
+## 2. Extra / structural deviations & extra files (deliverable scope)
+- Backend uses a **module-based structure** (`src/modules/<domain>/controller|service|repository|validators`) in addition to some top-level `src/controllers/*` and `src/routes/*`; plan inventory named flat `validators/`, `services/`, `repositories/` dirs - structure deviates.
+- Extra (non-node_modules, non-dist) files/dirs: `backend/scripts/` (backup-db.sh, smoke-e2e.mjs), `.codegraph` symlink, `TSD.md`, `2026Ganjil_B_01_TSD.pdf`, `frontend/.omo-placeholder`, `backend/dist/`, `frontend/dist/`, `frontend/node_modules/`, `backend/node_modules/` (build artifacts/deps present in tree).
+- No `Dockerfile` or `docker-compose.yml` found: PASS (Must NOT have).
+- No test framework/config/spec files (`*.test.*`, `*.spec.*`, jest/vitest config) outside node_modules: PASS.
+
+## 3. Frontend constraints
+- `grep` for react-router/BrowserRouter/Routes/Route in `frontend/src`: NO matches -> **no frontend router usage**: PASS.
+- `frontend/src/App.tsx` is typed starter using only `@/components/ui/*` components (button, card, input, label, badge), no data fetching/state/router: PASS (no extra business pages/features).
+- `react-router-dom`/`axios`/`recharts` are in `frontend/package.json` deps but unused in `src` (plan allowed deps installed, unused): acceptable per plan.
+
+## 4. README vs package.json & database filenames
+- Backend `package.json` scripts: `dev`, `build`, `start`, `typecheck`, `audit:routes` - README lists same and describes commands accurately: PASS.
+- Frontend `package.json` scripts: `dev`, `build`, `typecheck`, `preview` - README lists same: PASS.
+- README lists DB files in order 01_schema.sql..05_seed.sql matching `backend/database/`: PASS.
+- README seed credentials `bidan`/`Bidan#2026`, `admin`/`Admin#2026` (matches stated seed intent): PASS.
+- README states "no Docker" and gives sqlcmd/PM2/IIS-Vercel guidance consistent with plan: PASS.
+
+## 5. `.env` tracking & `opencode.json`
+- `git ls-files | grep '\.env$'`: empty -> **no tracked .env**: PASS (`backend/.env` exists locally but untracked/ignored as expected; `.env.example` files tracked).
+- `opencode.json` was **tracked at repo root** (part of deliverable? plan states "opencode.json at repo root is not part of the deliverable and must be deleted if present"). **Action taken:** deleted `opencode.json` (now `D opencode.json` in git status). Reported here.
+
+## 6. Git status (cleanliness apart from `.omo` bookkeeping)
+- `git status --porcelain` shows:
+  - `M .omo/plans/praktik-bidan-monorepo.md`, `M .omo/run-continuation/...`, `M .omo/start-work/ledger.jsonl` (omo bookkeeping)
+  - `D opencode.json` (deliverable-excluded file removed per instruction)
+  - `??` untracked under `.omo/evidence/` and `.omo/scratch/` (F1-F3 evidence, task evidence, scratch artifacts) - bookkeeping/scratch
+- **Not clean of non-.omo product changes** due to `D opencode.json`; otherwise working tree changes are `.omo` bookkeeping/scratch only: **FAIL (not fully clean apart from .omo)**.
+
+## 7. Other checks (no other code modified by this audit)
+- No application/backend/frontend source code modified by F4; only `opencode.json` deleted and this evidence file written.
+
+## FINDINGS SUMMARY
+- Delivered core monorepo structure, DB scripts (01-05), Postman artifacts, frontend starter w/ 5 shadcn UI components, README, .gitignore present.
+- Deviations from literal inventory paths: `dbSession.ts` vs `dbSessionContext.ts`; missing `notFound.ts`, missing `utils/excel.ts`; no flat `validators/ services/ repositories/` dirs (module-colocated instead). These are structural/naming deviations against the authoritative file inventory.
+- `opencode.json` was tracked -> deleted (reported).
+- No Docker/test frameworks/router usage/extra business pages detected.
+- `.env` not tracked.
+
+## RESULT: **FAIL**
+
+Primary reasons: (1) git status not clean apart from `.omo` bookkeeping because tracked `opencode.json` required deletion (`D opencode.json` pending), (2) delivered tree deviates from the authoritative Scope File Inventory in several specified paths/names/locations (dbSessionContext/notFound/excel utils, flat validators/services/repositories dirs). No other code modified; `dbo.users` untouched.
+
+---
+## F4 Re-verdict (post-remediation 4a42384, appended 2026-11-15)
+
+Scope re-checked read-only (no code modified, no dbo.users touched).
+
+### Scope File Inventory (named items)
+- Present: `backend/src/utils/excel.ts`, `backend/src/middlewares/notFound.ts`, `backend/src/middlewares/dbSessionContext.ts`, `backend/src/validators/index.ts`, `backend/src/services/index.ts`, `backend/src/repositories/index.ts`.
+- Present dirs/files: `backend/src/routes/*`, `backend/src/controllers/*`, `backend/src/jobs/{reminderH1.job,inventoryWeekly.job,index}.ts`, `backend/src/scripts/route-audit.ts`, `backend/database/01_schema.sql..05_seed.sql`, `backend/docs/postman/{generate-postman.mjs,Praktik_Mandiri_Bidan_API.postman_collection.json,Local_Dev.postman_environment.json}`.
+- Frontend inventory present: `frontend/package.json`, `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `index.html`, `postcss.config.js`, `tailwind.config.js`, `components.json`, `.env.example`, `src/main.tsx`, `src/App.tsx`, `src/index.css`, `src/vite-env.d.ts`, `src/lib/utils.ts`, `src/components/ui/{button,card,input,label,badge}.tsx`.
+
+### Constraints
+- No frontend router usage in `frontend/src` / `src/App.tsx`: PASS (no react-router/BrowserRouter/Routes matches).
+- No test framework/config/spec files outside deps: PASS.
+- No `Dockerfile` / `docker-compose.yml`: PASS.
+- `frontend/.omo-placeholder` and `.codegraph`: absent from tree: PASS.
+- `git ls-files` has no `.env`: PASS (`backend/.env` exists locally but untracked).
+- `opencode.json`: absent from tree and not tracked by git: PASS.
+- `README.md` commands match `backend/package.json` (`dev,build,start,typecheck,audit:routes`) and `frontend/package.json` (`dev,build,typecheck,preview`), and lists real DB filenames in order `01_schema.sql,02_functions_views.sql,03_stored_procedures.sql,04_triggers.sql,05_seed.sql`: PASS.
+- `backend/scripts` (`backup-db.sh`, `smoke-e2e.mjs`) and `TSD.md` / `2026Ganjil_B_01_TSD.pdf` present as documented input/deliverable extras, not business features: PASS.
+
+### Notes
+- `backend/.env` exists locally (untracked) and untracked `.omo/` evidence/scratch files are present; these are not deliverable source and no code was changed in this audit.
+
+## FINAL RESULT: **PASS**

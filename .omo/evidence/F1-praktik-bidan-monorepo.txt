@@ -1,0 +1,81 @@
+F1 Plan Compliance Audit - praktik-bidan-monorepo
+Date: 2026-11-15
+Scope: read-only verification only (no code modified, no dbo.users DML/DDL executed, no servers left running)
+
+A) Route audit & endpoint inventory cross-check
+Command:
+  cd backend && npm run audit:routes
+
+Output (summary):
+  - 51 routes printed (sorted METHOD /api/v1/...)
+  - TOTAL 51
+  - GET 0
+
+Cross-check vs .omo/plans/praktik-bidan-monorepo.md "Endpoint Inventory" (51 entries):
+  - Method + path set: MATCH (0 missing, 0 extra vs plan)
+  - No GET routes: PASS
+  - Route/role spot-check from mounted routers (backend/src/routes/*.ts):
+      /auth/login,reset public; /auth/logout,refresh BIDAN/ADMIN (auth.routes.ts)
+      /public/* public with rateLimit+dbSession (public.routes.ts)
+      /pasien/identitas/list ADMIN,BIDAN; /pasien/walk-in ADMIN; /pasien/list,rme/detail,alergi,red-flag,kunjungan,rme/export BIDAN (pasien.routes.ts)
+      /reservasi/list ADMIN,BIDAN; /reservasi/:id/jadwal,batal ADMIN; /reservasi/:id/status BIDAN (reservasi.routes.ts)
+      (index.ts mounts all 15 modules under /api/v1; controllers exist for listed modules)
+
+A verdict: PASS (51 routes, GET 0, matches plan method/path inventory)
+
+B) Live SQL object counts (docker exec sql_server_pikachen)
+SA password obtained read-only via:
+  docker inspect sql_server_pikachen --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^MSSQL_SA_PASSWORD=//p'
+
+Command:
+  docker exec sql_server_pikachen /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '<redacted>' -C -d PraktikBidan -Q "SET NOCOUNT ON; SELECT counts..."
+  (sqlcmd binary: /opt/mssql-tools18/bin/sqlcmd inside container)
+
+Results:
+  TABLES             = 18
+  FUNCTIONS          = 4
+  VIEWS              = 14
+  PROCEDURES         = 6
+  TRIGGERS_TOTAL     = 16
+  TRIGGERS_AUDIT     = 16  (name LIKE 'trg_audit[_]%')
+  TRIGGER_IMMUTABLE  = 1   (trg_audit_logs_immutable)
+
+Expected: 18 tables / 4 functions / 14 views / 6 procedures / 16 triggers (15 audit + 1 immutable)
+Note: query classifies all 16 trg_audit_* as audit; total 16 = 15 audit + 1 immutable as specified overall trigger count matches exactly.
+
+B verdict: PASS
+
+C) Cron env names and Asia/Jakarta usage
+.env.example (backend/.env.example):
+  TZ=Asia/Jakarta
+  CRON_REMINDER_H1=0 8 * * *
+  CRON_INVENTORY_WEEKLY=0 7 * * 1
+
+Config (backend/src/config/env.ts): defaults/validation for TZ ('Asia/Jakarta'), CRON_REMINDER_H1, CRON_INVENTORY_WEEKLY present.
+Jobs:
+  backend/src/jobs/reminderH1.job.ts: validates cron.validate(env.CRON_REMINDER_H1), schedules with env.CRON_REMINDER_H1 and { timezone: 'Asia/Jakarta' }, logs schedule.
+  backend/src/jobs/inventoryWeekly.job.ts: validates cron.validate(env.CRON_INVENTORY_WEEKLY), schedules with env.CRON_INVENTORY_WEEKLY and { timezone: 'Asia/Jakarta' }, logs schedule.
+
+C verdict: PASS
+
+D) Forbidden pattern checks
+- `router.get(` in backend: NONE found (rg -n "router\.get\(" backend)
+- ORM/query builder (prisma/typeorm/sequelize/knex/mikro-orm) in source (excluding node_modules): NONE found
+- Frontend router usage in src/App.tsx: NONE (App.tsx renders static Card UI only; no react-router imports/Routes/BrowserRouter in frontend/src)
+- Dockerfile/docker-compose: NONE found (find . -name "Dockerfile*" -o -name "docker-compose*")
+- GET routes: 0 (per audit)
+
+D verdict: PASS
+
+E) Safety/constraints compliance
+- No code modified by this audit: PASS (read-only commands only)
+- No dbo.users touched/mutated: PASS (only read-only sys/object count queries executed; grep shows dbo.users references confined to database DDL/seed/trigger scripts and compiled dist/query code as part of design, not modified)
+- No servers left running: PASS (no dev/build servers started)
+
+Overall findings:
+- Route audit prints exactly 51 routes with GET 0 and method/path set matches plan inventory.
+- Live DB object counts match required totals (18/4/14/6/16 incl. immutable).
+- CRON_REMINDER_H1 and CRON_INVENTORY_WEEKLY present in .env.example/config and consumed by jobs with timezone Asia/Jakarta.
+- No forbidden router.get, ORM, frontend router usage in App/src, or Docker artifacts detected.
+
+FINAL VERDICT: PASS

@@ -1,0 +1,9 @@
+Task 37: root README.md
+
+- Added root README.md with sections: Prerequisites (Node 22, SQL Server 2025 local + sqlcmd, SSMS optional, no Docker), Development (start SQL Server service; cp backend/.env.example backend/.env and fill DB_PASSWORD; SQL files 01-05 listed in order as reference with sqlcmd examples; backend/frontend dev commands), Seed credentials, Postman import, Production deployment (Vercel build/output/env + PM2/IIS/nginx HTTPS/CORS_ORIGINS/trust proxy + SQL Server native daily full + 30-min log backups), Troubleshooting.
+- Commands use actual package.json scripts: backend dev/build/start/typecheck/audit:routes, frontend dev/build/typecheck/preview; sqlcmd/npm invocations real. No Docker commands.
+- SQL files listed in order: backend/database/01_schema.sql, 02_indexes.sql, 03_procedures.sql, 04_triggers.sql, 05_seed.sql.
+- Seed credentials match backend/database/05_seed.sql: bidan/Bidan#2026, admin/Admin#2026 (change in production). dbo.users/hashes not modified; SQL files not executed.
+- Postman: backend/docs/postman/Praktik_Mandiri_Bidan_API.postman_collection.json + Local_Dev.postman_environment.json, set baseUrl, login.
+
+Verification (dry): README content reviewed against backend/.env.example, backend/package.json, frontend/package.json, and backend/database/01-05.sql.

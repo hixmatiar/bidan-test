@@ -1,0 +1,1272 @@
+{
+  "baseUrl": "http://127.0.0.1:4106",
+  "startedAt": "2026-11-15T01:59:24.026Z",
+  "steps": [
+    {
+      "name": "login bidan",
+      "ok": true,
+      "method": "POST",
+      "path": "/auth/login",
+      "url": "http://127.0.0.1:4106/api/v1/auth/login",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJpZGFuIiwicm9sZSI6IkJJREFOIiwiaWF0IjoxNzk0NzA3OTY0LCJleHAiOjE3OTQ3MDk3NjQsInN1YiI6IjNEQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.kW12cDGldSr1ImCWESEE_1s0BgzcgQRkOUpihitNbro",
+          "expires_in": 1800,
+          "user": {
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "role": "BIDAN",
+            "nama_lengkap": "Bidan Siti Rahmawati"
+          }
+        },
+        "message": "Login berhasil"
+      },
+      "label": "login bidan"
+    },
+    {
+      "name": "login admin",
+      "ok": true,
+      "method": "POST",
+      "path": "/auth/login",
+      "url": "http://127.0.0.1:4106/api/v1/auth/login",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzk0NzA3OTY1LCJleHAiOjE3OTQ3MDk3NjUsInN1YiI6IjNGQ0I0MjNFLUYzNkItMTQxMC04NjRDLTAwQ0EwRDU0Q0E3QiJ9.K_6k2p1MyRDDQ8RJpJbM7XX4CyWQ2uGOZzj_KhrWU_M",
+          "expires_in": 1800,
+          "user": {
+            "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "admin",
+            "role": "ADMIN",
+            "nama_lengkap": "Admin Praktik Bidan"
+          }
+        },
+        "message": "Login berhasil"
+      },
+      "label": "login admin"
+    },
+    {
+      "name": "public layanan list",
+      "ok": true,
+      "method": "POST",
+      "path": "/public/layanan/list",
+      "url": "http://127.0.0.1:4106/api/v1/public/layanan/list",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": [
+          {
+            "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Imunisasi Bayi",
+            "kategori": "KEBIDANAN",
+            "deskripsi": "Imunisasi dasar lengkap sesuai jadwal."
+          },
+          {
+            "layanan_id": "4FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Konsultasi Gizi",
+            "kategori": "UMUM",
+            "deskripsi": "Konsultasi gizi ibu hamil, menyusui, dan anak."
+          },
+          {
+            "layanan_id": "47CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Pelayanan KB",
+            "kategori": "KEBIDANAN",
+            "deskripsi": "Konsultasi dan pemasangan alat kontrasepsi."
+          },
+          {
+            "layanan_id": "41CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Pemeriksaan Kehamilan (ANC)",
+            "kategori": "KEBIDANAN",
+            "deskripsi": "Pemeriksaan rutin ibu hamil termasuk pemeriksaan fisik dan konsultasi."
+          },
+          {
+            "layanan_id": "45CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Pemeriksaan Nifas",
+            "kategori": "KEBIDANAN",
+            "deskripsi": "Pemantauan kesehatan ibu dan involusi rahim pada masa nifas."
+          },
+          {
+            "layanan_id": "4DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Pemeriksaan Umum",
+            "kategori": "UMUM",
+            "deskripsi": "Pemeriksaan kesehatan umum dan konsultasi keluhan ringan."
+          },
+          {
+            "layanan_id": "43CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Persalinan Normal",
+            "kategori": "KEBIDANAN",
+            "deskripsi": "Pertolongan persalinan normal beserta perawatan ibu dan bayi baru lahir."
+          },
+          {
+            "layanan_id": "4BCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Senam Hamil",
+            "kategori": "KEBIDANAN",
+            "deskripsi": "Senam hamil terpandu untuk kebugaran ibu selama kehamilan."
+          }
+        ],
+        "message": "Berhasil",
+        "meta": {
+          "current_page": 1,
+          "per_page": 10,
+          "total": 8,
+          "last_page": 1
+        }
+      },
+      "label": "public layanan list"
+    },
+    {
+      "name": "public sesi list",
+      "ok": true,
+      "method": "POST",
+      "path": "/public/sesi/list",
+      "url": "http://127.0.0.1:4106/api/v1/public/sesi/list",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": [
+          {
+            "sesi_id": "C7CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-15",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 15,
+            "sisa_kuota": 9
+          },
+          {
+            "sesi_id": "CECB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-16",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 10,
+            "sisa_kuota": 3
+          },
+          {
+            "sesi_id": "993C433E-F36B-1410-864D-00CA0D54CA7B",
+            "tanggal": "2026-11-16",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "10:00:00",
+            "kuota_maks": 10,
+            "sisa_kuota": 9
+          },
+          {
+            "sesi_id": "D5CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-17",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 20,
+            "sisa_kuota": 20
+          },
+          {
+            "sesi_id": "DCCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-18",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 16,
+            "sisa_kuota": 16
+          },
+          {
+            "sesi_id": "CABCEA48-3F8F-4AC5-A33A-970FB1F33818",
+            "tanggal": "2099-12-30",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "09:00:00",
+            "kuota_maks": 1,
+            "sisa_kuota": 0
+          },
+          {
+            "sesi_id": "8868E1F4-FBEC-474B-86A1-6C10B27102FA",
+            "tanggal": "2099-12-31",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "09:00:00",
+            "kuota_maks": 1,
+            "sisa_kuota": 1
+          }
+        ],
+        "message": "Berhasil",
+        "meta": {
+          "current_page": 1,
+          "per_page": 50,
+          "total": 7,
+          "last_page": 1
+        }
+      },
+      "label": "public sesi list"
+    },
+    {
+      "name": "public reservasi new patient",
+      "ok": true,
+      "method": "POST",
+      "path": "/public/reservasi",
+      "url": "http://127.0.0.1:4106/api/v1/public/reservasi",
+      "status": 201,
+      "expect": 201,
+      "response": {
+        "status": "success",
+        "data": {
+          "reservasi_id": "67171ABE-ADEA-494A-8444-578557E22B1A",
+          "sesi_id": "C7CB423E-F36B-1410-864C-00CA0D54CA7B",
+          "tanggal": "2026-11-15",
+          "jam_mulai": "08:00:00",
+          "jam_selesai": "12:00:00",
+          "nomor_antrean": 7,
+          "estimasi_jam": "09:30:00",
+          "status": "MENUNGGU",
+          "metode_daftar": "ONLINE",
+          "alasan_batal": null,
+          "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+          "nik": "9179470796548000",
+          "nama_pasien": "Smoke Pasien 1794707965480",
+          "no_telepon": "0817947079654",
+          "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+          "nama_layanan": "Imunisasi Bayi",
+          "created_at": "2026-11-15T01:59:26.000Z",
+          "updated_at": null
+        },
+        "message": "Reservasi berhasil dibuat"
+      },
+      "label": "public reservasi new patient"
+    },
+    {
+      "name": "public sesi list (for walk-in)",
+      "ok": true,
+      "method": "POST",
+      "path": "/public/sesi/list",
+      "url": "http://127.0.0.1:4106/api/v1/public/sesi/list",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": [
+          {
+            "sesi_id": "C7CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-15",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 15,
+            "sisa_kuota": 8
+          },
+          {
+            "sesi_id": "CECB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-16",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 10,
+            "sisa_kuota": 3
+          },
+          {
+            "sesi_id": "993C433E-F36B-1410-864D-00CA0D54CA7B",
+            "tanggal": "2026-11-16",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "10:00:00",
+            "kuota_maks": 10,
+            "sisa_kuota": 9
+          },
+          {
+            "sesi_id": "D5CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-17",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 20,
+            "sisa_kuota": 20
+          },
+          {
+            "sesi_id": "DCCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "tanggal": "2026-11-18",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "12:00:00",
+            "kuota_maks": 16,
+            "sisa_kuota": 16
+          },
+          {
+            "sesi_id": "CABCEA48-3F8F-4AC5-A33A-970FB1F33818",
+            "tanggal": "2099-12-30",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "09:00:00",
+            "kuota_maks": 1,
+            "sisa_kuota": 0
+          },
+          {
+            "sesi_id": "8868E1F4-FBEC-474B-86A1-6C10B27102FA",
+            "tanggal": "2099-12-31",
+            "jam_mulai": "08:00:00",
+            "jam_selesai": "09:00:00",
+            "kuota_maks": 1,
+            "sisa_kuota": 1
+          }
+        ],
+        "message": "Berhasil",
+        "meta": {
+          "current_page": 1,
+          "per_page": 50,
+          "total": 7,
+          "last_page": 1
+        }
+      },
+      "label": "public sesi list (for walk-in)"
+    },
+    {
+      "name": "walk-in as admin",
+      "ok": true,
+      "method": "POST",
+      "path": "/pasien/walk-in",
+      "url": "http://127.0.0.1:4106/api/v1/pasien/walk-in",
+      "status": 201,
+      "expect": 201,
+      "response": {
+        "status": "success",
+        "data": {
+          "reservasi_id": "7597E760-FD96-4E5A-9C83-FB402C63EE68",
+          "sesi_id": "CECB423E-F36B-1410-864C-00CA0D54CA7B",
+          "tanggal": "2026-11-16",
+          "jam_mulai": "08:00:00",
+          "jam_selesai": "12:00:00",
+          "nomor_antrean": 8,
+          "estimasi_jam": "09:45:00",
+          "status": "MENUNGGU",
+          "metode_daftar": "MANUAL_ADMIN",
+          "alasan_batal": null,
+          "pasien_id": "E5805BA8-7EE5-4623-9395-050135046A2E",
+          "nik": "8179470796576470",
+          "nama_pasien": "Smoke Walkin 17947079657647",
+          "no_telepon": "0817947079657",
+          "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+          "nama_layanan": "Imunisasi Bayi",
+          "created_at": "2026-11-15T01:59:26.000Z",
+          "updated_at": null
+        },
+        "message": "Pendaftaran walk-in berhasil"
+      },
+      "label": "walk-in as admin"
+    },
+    {
+      "name": "RME detail as bidan (audit VIEW_RME)",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/rme/detail",
+      "url": "http://127.0.0.1:4106/api/v1/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/rme/detail",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "pasien": {
+            "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+            "nik": "9179470796548000",
+            "nama": "Smoke Pasien 1794707965480",
+            "tgl_lahir": "1995-05-10T00:00:00.000Z",
+            "alamat": "Jl. Smoke Test",
+            "no_telepon": "0817947079654",
+            "is_active": true,
+            "created_at": "2026-11-15T01:59:26.000Z",
+            "updated_at": null,
+            "jumlah_kunjungan": 0,
+            "kunjungan_terakhir": null,
+            "jumlah_red_flag_aktif": 0
+          },
+          "alergi_aktif": [],
+          "has_red_flag": false,
+          "kunjungan": []
+        },
+        "message": "Detail RME berhasil diambil"
+      },
+      "label": "RME detail as bidan (audit VIEW_RME)"
+    },
+    {
+      "name": "red-flag confirm",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/red-flag/konfirmasi",
+      "url": "http://127.0.0.1:4106/api/v1/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/red-flag/konfirmasi",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "confirmed": true,
+          "confirmed_at": "2026-11-15T01:59:27.000Z"
+        },
+        "message": "Konfirmasi red-flag berhasil dicatat"
+      },
+      "label": "red-flag confirm"
+    },
+    {
+      "name": "inventaris list (best effort)",
+      "ok": true,
+      "method": "POST",
+      "path": "/inventaris/list",
+      "url": "http://127.0.0.1:4106/api/v1/inventaris/list",
+      "status": 200,
+      "expect": [
+        200,
+        404,
+        403
+      ],
+      "response": {
+        "status": "success",
+        "data": [
+          {
+            "item_id": "5FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Alkohol 70% 100 ml",
+            "kategori": "PRODUK_KESEHATAN",
+            "satuan": "botol",
+            "stok": 23,
+            "stok_minimum": 6,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": "2026-11-15T01:12:06.000Z"
+          },
+          {
+            "item_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Amoxicillin 500 mg",
+            "kategori": "OBAT",
+            "satuan": "kapsul",
+            "stok": 36,
+            "stok_minimum": 20,
+            "tgl_kedaluwarsa": "2027-01-13T00:00:00.000Z",
+            "days_to_expiry": 59,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": "2026-11-15T01:55:30.000Z"
+          },
+          {
+            "item_id": "53CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Asam Folat 400 mcg",
+            "kategori": "OBAT",
+            "satuan": "tablet",
+            "stok": 80,
+            "stok_minimum": 20,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "5DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Betadine 60 ml",
+            "kategori": "PRODUK_KESEHATAN",
+            "satuan": "botol",
+            "stok": 2,
+            "stok_minimum": 5,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "MENIPIS",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "63CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Handscoon Steril",
+            "kategori": "PRODUK_KESEHATAN",
+            "satuan": "pasang",
+            "stok": 150,
+            "stok_minimum": 40,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "55CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Kalsium Laktat 500 mg",
+            "kategori": "OBAT",
+            "satuan": "tablet",
+            "stok": 60,
+            "stok_minimum": 20,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "61CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Kapas 100 gram",
+            "kategori": "PRODUK_KESEHATAN",
+            "satuan": "bungkus",
+            "stok": 30,
+            "stok_minimum": 10,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "5BCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Oksitosin 10 IU",
+            "kategori": "OBAT",
+            "satuan": "ampul",
+            "stok": 15,
+            "stok_minimum": 5,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "57CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Paracetamol 500 mg",
+            "kategori": "OBAT",
+            "satuan": "tablet",
+            "stok": 200,
+            "stok_minimum": 50,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          },
+          {
+            "item_id": "51CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nama": "Tablet Tambah Darah",
+            "kategori": "OBAT",
+            "satuan": "tablet",
+            "stok": 120,
+            "stok_minimum": 30,
+            "tgl_kedaluwarsa": null,
+            "days_to_expiry": null,
+            "status_stok": "AMAN",
+            "is_active": true,
+            "created_at": "2026-11-13T09:21:12.000Z",
+            "updated_at": null
+          }
+        ],
+        "message": "Berhasil",
+        "meta": {
+          "current_page": 1,
+          "per_page": 10,
+          "total": 10,
+          "last_page": 1
+        }
+      },
+      "label": "inventaris list (best effort)"
+    },
+    {
+      "name": "create kunjungan (with resep if available)",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/kunjungan",
+      "url": "http://127.0.0.1:4106/api/v1/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/kunjungan",
+      "status": 201,
+      "expect": 201,
+      "response": {
+        "status": "success",
+        "data": {
+          "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+          "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+          "total_tagihan": 49000
+        },
+        "message": "Kunjungan berhasil disimpan"
+      },
+      "label": "create kunjungan (with resep if available)"
+    },
+    {
+      "name": "tagihan detail",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/kunjungan/4B10327B-246C-4C91-A2D8-9EA21D6B5F8E/tagihan/detail",
+      "url": "http://127.0.0.1:4106/api/v1/kunjungan/4B10327B-246C-4C91-A2D8-9EA21D6B5F8E/tagihan/detail",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+          "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+          "tanggal_kunjungan": "2026-11-15T01:59:27.000Z",
+          "pasien": {
+            "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+            "nama": "Smoke Pasien 1794707965480"
+          },
+          "rincian": [
+            {
+              "rincian_id": "FE3C433E-F36B-1410-864D-00CA0D54CA7B",
+              "tipe": "LAYANAN",
+              "nama": "Imunisasi Bayi",
+              "qty": 1,
+              "harga_satuan": 45000,
+              "subtotal": 45000
+            },
+            {
+              "rincian_id": "043D433E-F36B-1410-864D-00CA0D54CA7B",
+              "tipe": "ITEM",
+              "nama": "Amoxicillin 500 mg",
+              "qty": 1,
+              "harga_satuan": 4000,
+              "subtotal": 4000
+            }
+          ],
+          "total_tagihan": 49000,
+          "total_dibayar": 0,
+          "sisa_tagihan": 49000,
+          "status": "BELUM_LUNAS",
+          "pembayaran": []
+        },
+        "message": "Detail tagihan berhasil diambil"
+      },
+      "label": "tagihan detail"
+    },
+    {
+      "name": "pembayaran full amount -> LUNAS",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/tagihan/C3FAA927-DD8B-407F-88C3-00B3F0BDC795/pembayaran",
+      "url": "http://127.0.0.1:4106/api/v1/tagihan/C3FAA927-DD8B-407F-88C3-00B3F0BDC795/pembayaran",
+      "status": 201,
+      "expect": 201,
+      "response": {
+        "status": "success",
+        "data": {
+          "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+          "total_tagihan": 49000,
+          "total_dibayar": 49000,
+          "status": "LUNAS"
+        },
+        "message": "Pembayaran berhasil dicatat"
+      },
+      "label": "pembayaran full amount -> LUNAS"
+    },
+    {
+      "name": "audit logs list shows mutations",
+      "ok": true,
+      "method": "POST",
+      "path": "/audit-logs/list",
+      "url": "http://127.0.0.1:4106/api/v1/audit-logs/list",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": [
+          {
+            "log_id": "20487",
+            "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "admin",
+            "user_ref": "admin",
+            "aksi": "UPDATE",
+            "entitas": "tagihan",
+            "entitas_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+            "nilai_lama": {
+              "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+              "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+              "total_tagihan": 49000,
+              "total_dibayar": 0,
+              "status": "BELUM_LUNAS",
+              "created_at": "2026-11-15T01:59:27"
+            },
+            "nilai_baru": {
+              "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+              "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+              "total_tagihan": 49000,
+              "total_dibayar": 49000,
+              "status": "LUNAS",
+              "created_at": "2026-11-15T01:59:27",
+              "updated_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20486",
+            "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "admin",
+            "user_ref": "admin",
+            "aksi": "CREATE",
+            "entitas": "pembayaran",
+            "entitas_id": "073D433E-F36B-1410-864D-00CA0D54CA7B",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "pembayaran_id": "073D433E-F36B-1410-864D-00CA0D54CA7B",
+              "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+              "jumlah": 49000,
+              "jalur": "MANDIRI",
+              "dicatat_oleh": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "tanggal_bayar": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20485",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "CREATE",
+            "entitas": "tagihan_rincian",
+            "entitas_id": "043D433E-F36B-1410-864D-00CA0D54CA7B",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "rincian_id": "043D433E-F36B-1410-864D-00CA0D54CA7B",
+              "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+              "item_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "qty": 1,
+              "harga_satuan": 4000,
+              "created_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20484",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "CREATE",
+            "entitas": "tagihan_rincian",
+            "entitas_id": "FE3C433E-F36B-1410-864D-00CA0D54CA7B",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "rincian_id": "FE3C433E-F36B-1410-864D-00CA0D54CA7B",
+              "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+              "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "qty": 1,
+              "harga_satuan": 45000,
+              "created_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20483",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "CREATE",
+            "entitas": "tagihan",
+            "entitas_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "tagihan_id": "C3FAA927-DD8B-407F-88C3-00B3F0BDC795",
+              "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+              "total_tagihan": 49000,
+              "total_dibayar": 0,
+              "status": "BELUM_LUNAS",
+              "created_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20482",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "CREATE",
+            "entitas": "riwayat_stok",
+            "entitas_id": "F83C433E-F36B-1410-864D-00CA0D54CA7B",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "riwayat_id": "F83C433E-F36B-1410-864D-00CA0D54CA7B",
+              "item_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+              "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "jenis": "PAKAI",
+              "jumlah": 1,
+              "keterangan": "Pemakaian resep kunjungan",
+              "tanggal": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20481",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "UPDATE",
+            "entitas": "item_inventaris",
+            "entitas_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nilai_lama": {
+              "item_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "nama": "Amoxicillin 500 mg",
+              "kategori": "OBAT",
+              "satuan": "kapsul",
+              "stok": 36,
+              "stok_minimum": 20,
+              "tgl_kedaluwarsa": "2027-01-13",
+              "is_active": true,
+              "created_at": "2026-11-13T09:21:12",
+              "updated_at": "2026-11-15T01:55:30"
+            },
+            "nilai_baru": {
+              "item_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "nama": "Amoxicillin 500 mg",
+              "kategori": "OBAT",
+              "satuan": "kapsul",
+              "stok": 35,
+              "stok_minimum": 20,
+              "tgl_kedaluwarsa": "2027-01-13",
+              "is_active": true,
+              "created_at": "2026-11-13T09:21:12",
+              "updated_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20480",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "CREATE",
+            "entitas": "resep_item",
+            "entitas_id": "F23C433E-F36B-1410-864D-00CA0D54CA7B",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "resep_id": "F23C433E-F36B-1410-864D-00CA0D54CA7B",
+              "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+              "item_id": "59CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "jumlah": 1,
+              "aturan_pakai": "3x1",
+              "created_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20479",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "CREATE",
+            "entitas": "kunjungan",
+            "entitas_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "kunjungan_id": "4B10327B-246C-4C91-A2D8-9EA21D6B5F8E",
+              "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+              "bidan_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "tanggal_kunjungan": "2026-11-15T01:59:27",
+              "keluhan": "Keluhan smoke test",
+              "pemeriksaan_fisik": "Pemeriksaan normal",
+              "diagnosis": "Diagnosis smoke",
+              "tindakan": "Tindakan smoke",
+              "catatan_bebas": "Catatan smoke",
+              "created_at": "2026-11-15T01:59:27"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20478",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "RED_FLAG_CONFIRMED",
+            "entitas": "pasien",
+            "entitas_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+            "nilai_lama": null,
+            "nilai_baru": [],
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:27.000Z"
+          },
+          {
+            "log_id": "20477",
+            "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "bidan",
+            "user_ref": "bidan",
+            "aksi": "VIEW_RME",
+            "entitas": "pasien",
+            "entitas_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+            "nilai_lama": null,
+            "nilai_baru": null,
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:26.000Z"
+          },
+          {
+            "log_id": "20476",
+            "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "admin",
+            "user_ref": "admin",
+            "aksi": "CREATE",
+            "entitas": "reservasi",
+            "entitas_id": "7597E760-FD96-4E5A-9C83-FB402C63EE68",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "reservasi_id": "7597E760-FD96-4E5A-9C83-FB402C63EE68",
+              "pasien_id": "E5805BA8-7EE5-4623-9395-050135046A2E",
+              "sesi_id": "CECB423E-F36B-1410-864C-00CA0D54CA7B",
+              "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "nomor_antrean": 8,
+              "estimasi_jam": "09:45:00",
+              "metode_daftar": "MANUAL_ADMIN",
+              "status": "MENUNGGU",
+              "dibuat_oleh": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "created_at": "2026-11-15T01:59:26"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:26.000Z"
+          },
+          {
+            "log_id": "20475",
+            "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "username": "admin",
+            "user_ref": "admin",
+            "aksi": "CREATE",
+            "entitas": "pasien",
+            "entitas_id": "E5805BA8-7EE5-4623-9395-050135046A2E",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "pasien_id": "E5805BA8-7EE5-4623-9395-050135046A2E",
+              "nik": "8179470796576470",
+              "nama": "Smoke Walkin 17947079657647",
+              "tgl_lahir": "1992-02-20",
+              "alamat": "Jl. Walkin",
+              "no_telepon": "0817947079657",
+              "is_active": true,
+              "created_at": "2026-11-15T01:59:26"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:26.000Z"
+          },
+          {
+            "log_id": "20474",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "CREATE",
+            "entitas": "reservasi",
+            "entitas_id": "67171ABE-ADEA-494A-8444-578557E22B1A",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "reservasi_id": "67171ABE-ADEA-494A-8444-578557E22B1A",
+              "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+              "sesi_id": "C7CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "layanan_id": "49CB423E-F36B-1410-864C-00CA0D54CA7B",
+              "nomor_antrean": 7,
+              "estimasi_jam": "09:30:00",
+              "metode_daftar": "ONLINE",
+              "status": "MENUNGGU",
+              "created_at": "2026-11-15T01:59:26"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:26.000Z"
+          },
+          {
+            "log_id": "20473",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "CREATE",
+            "entitas": "pasien",
+            "entitas_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+            "nilai_lama": null,
+            "nilai_baru": {
+              "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+              "nik": "9179470796548000",
+              "nama": "Smoke Pasien 1794707965480",
+              "tgl_lahir": "1995-05-10",
+              "alamat": "Jl. Smoke Test",
+              "no_telepon": "0817947079654",
+              "is_active": true,
+              "created_at": "2026-11-15T01:59:26"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:26.000Z"
+          },
+          {
+            "log_id": "20472",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "UPDATE",
+            "entitas": "users",
+            "entitas_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nilai_lama": {
+              "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "admin",
+              "nama_lengkap": "Admin Praktik Bidan",
+              "role": "ADMIN",
+              "no_telepon": "081234567802",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:56:51",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "nilai_baru": {
+              "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "admin",
+              "nama_lengkap": "Admin Praktik Bidan",
+              "role": "ADMIN",
+              "no_telepon": "081234567802",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:59:25",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:25.000Z"
+          },
+          {
+            "log_id": "20471",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "UPDATE",
+            "entitas": "users",
+            "entitas_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nilai_lama": {
+              "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "bidan",
+              "nama_lengkap": "Bidan Siti Rahmawati",
+              "role": "BIDAN",
+              "no_telepon": "081234567801",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:56:50",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "nilai_baru": {
+              "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "bidan",
+              "nama_lengkap": "Bidan Siti Rahmawati",
+              "role": "BIDAN",
+              "no_telepon": "081234567801",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:59:25",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:59:25.000Z"
+          },
+          {
+            "log_id": "20470",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "UPDATE",
+            "entitas": "users",
+            "entitas_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nilai_lama": {
+              "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "admin",
+              "nama_lengkap": "Admin Praktik Bidan",
+              "role": "ADMIN",
+              "no_telepon": "081234567802",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:55:51",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "nilai_baru": {
+              "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "admin",
+              "nama_lengkap": "Admin Praktik Bidan",
+              "role": "ADMIN",
+              "no_telepon": "081234567802",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:56:51",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:56:51.000Z"
+          },
+          {
+            "log_id": "20469",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "UPDATE",
+            "entitas": "users",
+            "entitas_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nilai_lama": {
+              "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "bidan",
+              "nama_lengkap": "Bidan Siti Rahmawati",
+              "role": "BIDAN",
+              "no_telepon": "081234567801",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:56:26",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "nilai_baru": {
+              "user_id": "3DCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "bidan",
+              "nama_lengkap": "Bidan Siti Rahmawati",
+              "role": "BIDAN",
+              "no_telepon": "081234567801",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:56:50",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "ip_address": "::ffff:127.0.0.1",
+            "created_at": "2026-11-15T01:56:50.000Z"
+          },
+          {
+            "log_id": "20468",
+            "user_id": null,
+            "username": null,
+            "user_ref": null,
+            "aksi": "UPDATE",
+            "entitas": "users",
+            "entitas_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+            "nilai_lama": {
+              "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "admin",
+              "nama_lengkap": "Admin Praktik Bidan",
+              "role": "ADMIN",
+              "no_telepon": "081234567802",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:55:51",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "nilai_baru": {
+              "user_id": "3FCB423E-F36B-1410-864C-00CA0D54CA7B",
+              "username": "admin",
+              "nama_lengkap": "Admin Praktik Bidan",
+              "role": "ADMIN",
+              "no_telepon": "081234567802",
+              "is_active": true,
+              "last_login_at": "2026-11-15T01:55:51",
+              "created_at": "2026-11-13T09:21:12"
+            },
+            "ip_address": null,
+            "created_at": "2026-11-15T01:56:45.000Z"
+          }
+        ],
+        "message": "Berhasil",
+        "meta": {
+          "current_page": 1,
+          "per_page": 20,
+          "total": 420,
+          "last_page": 21
+        }
+      },
+      "label": "audit logs list shows mutations"
+    },
+    {
+      "name": "red-flag confirm (2)",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/red-flag/konfirmasi",
+      "url": "http://127.0.0.1:4106/api/v1/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/red-flag/konfirmasi",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "confirmed": true,
+          "confirmed_at": "2026-11-15T01:59:28.000Z"
+        },
+        "message": "Konfirmasi red-flag berhasil dicatat"
+      },
+      "label": "red-flag confirm (2)"
+    },
+    {
+      "name": "kunjungan for overpayment test",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/kunjungan",
+      "url": "http://127.0.0.1:4106/api/v1/pasien/FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F/kunjungan",
+      "status": 201,
+      "expect": 201,
+      "response": {
+        "status": "success",
+        "data": {
+          "kunjungan_id": "E9823BF8-C0E4-4208-BB13-248E6D9232D2",
+          "tagihan_id": "BF025898-3C9A-46E2-94F6-33A2BFB68958",
+          "total_tagihan": 49000
+        },
+        "message": "Kunjungan berhasil disimpan"
+      },
+      "label": "kunjungan for overpayment test"
+    },
+    {
+      "name": "tagihan detail (overpay target)",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/kunjungan/E9823BF8-C0E4-4208-BB13-248E6D9232D2/tagihan/detail",
+      "url": "http://127.0.0.1:4106/api/v1/kunjungan/E9823BF8-C0E4-4208-BB13-248E6D9232D2/tagihan/detail",
+      "status": 200,
+      "expect": 200,
+      "response": {
+        "status": "success",
+        "data": {
+          "tagihan_id": "BF025898-3C9A-46E2-94F6-33A2BFB68958",
+          "kunjungan_id": "E9823BF8-C0E4-4208-BB13-248E6D9232D2",
+          "tanggal_kunjungan": "2026-11-15T01:59:28.000Z",
+          "pasien": {
+            "pasien_id": "FC9A2552-16FE-4BA6-9DFC-B5BE51E67D7F",
+            "nama": "Smoke Pasien 1794707965480"
+          },
+          "rincian": [
+            {
+              "rincian_id": "1C3D433E-F36B-1410-864D-00CA0D54CA7B",
+              "tipe": "LAYANAN",
+              "nama": "Imunisasi Bayi",
+              "qty": 1,
+              "harga_satuan": 45000,
+              "subtotal": 45000
+            },
+            {
+              "rincian_id": "233D433E-F36B-1410-864D-00CA0D54CA7B",
+              "tipe": "ITEM",
+              "nama": "Amoxicillin 500 mg",
+              "qty": 1,
+              "harga_satuan": 4000,
+              "subtotal": 4000
+            }
+          ],
+          "total_tagihan": 49000,
+          "total_dibayar": 0,
+          "sisa_tagihan": 49000,
+          "status": "BELUM_LUNAS",
+          "pembayaran": []
+        },
+        "message": "Detail tagihan berhasil diambil"
+      },
+      "label": "tagihan detail (overpay target)"
+    },
+    {
+      "name": "overpayment -> 409",
+      "ok": true,
+      "method": "POST",
+      "path": "/api/tagihan/BF025898-3C9A-46E2-94F6-33A2BFB68958/pembayaran",
+      "url": "http://127.0.0.1:4106/api/v1/tagihan/BF025898-3C9A-46E2-94F6-33A2BFB68958/pembayaran",
+      "status": 409,
+      "expect": 409,
+      "response": {
+        "status": "error",
+        "error_code": "ERR-FIN-02",
+        "message": "Pembayaran melebihi sisa tagihan.",
+        "errors": []
+      },
+      "label": "overpayment -> 409"
+    },
+    {
+      "name": "quota overrun -> 409",
+      "ok": true,
+      "method": "POST",
+      "path": "/public/reservasi",
+      "url": "http://127.0.0.1:4106/api/v1/public/reservasi",
+      "status": 409,
+      "expect": 409,
+      "response": {
+        "status": "error",
+        "error_code": "ERR-RSV-01",
+        "message": "Kuota sesi sudah penuh.",
+        "errors": []
+      },
+      "label": "quota overrun -> 409"
+    }
+  ],
+  "ok": true,
+  "paymentStatus": "LUNAS",
+  "finishedAt": "2026-11-15T01:59:28.692Z"
+}

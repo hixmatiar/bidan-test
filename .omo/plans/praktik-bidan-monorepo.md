@@ -313,7 +313,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - konten filter `tipe=TESTIMONI`; failure - `per_page:"abc"` returns 422 `ERR-VAL-03`; unpublished content never appears. Evidence `.omo/evidence/task-13-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add public content, service and session endpoints`
 
-- [ ] 14. Implement public patient lookup and online reservation (9-10)
+- [x] 14. Implement public patient lookup and online reservation (9-10)
   What to do / Must NOT do: `POST /public/pasien/cek` accepts exactly one of `nik` (16 digits) or `no_telepon`, returns `{ terdaftar, pasien_id?, nama_samaran?, has_red_flag? }` where `nama_samaran` keeps the first word and initials the rest (`R*** A***`); never return NIK, address, or diagnosis. `POST /public/reservasi` accepts `pasien_id` OR `pasien_baru {nik, nama, tgl_lahir, alamat, no_telepon}` (Zod discriminated union) plus `sesi_id` and `layanan_id`; calls `sp_buat_reservasi` with `@metode_daftar = 'ONLINE'` and `@ip = req.ip`; on success inserts `log_notifikasi` KONFIRMASI ANTRE and fires a non-blocking WA send that updates the row to TERKIRIM/GAGAL. Map SP error tokens to AppError. Do not bypass SP validation.
   Parallelization: Wave C | Blocked by: 6,7,9,13 | Blocks: 15,25
   References: user request endpoints 9-10; `TSD.md:41`; `TSD.md:52`; `TSD.md:122-123`; draft decisions 12 and 15.
@@ -321,7 +321,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - create with a new patient then check by phone; failure - invalid NIK returns 422 `ERR-VAL-01`; full quota returns 409 `ERR-RSV-01`. Evidence `.omo/evidence/task-14-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add public patient lookup and reservation`
 
-- [ ] 15. Implement patient identity list and admin walk-in (11-12)
+- [x] 15. Implement patient identity list and admin walk-in (11-12)
   What to do / Must NOT do: `POST /pasien/identitas/list` (ADMIN, BIDAN) filters `q` over nama/nik/no_telepon plus pagination and returns identity fields only. `POST /pasien/walk-in` (ADMIN) accepts `pasien_id` OR `pasien_baru` plus `sesi_id`/`layanan_id`; calls `sp_buat_reservasi` with `@metode_daftar = 'MANUAL_ADMIN'` and `@dibuat_oleh = req.user.user_id`; returns the reservation and patient. Reuse the todo-14 patient repository. ADMIN must never receive RME fields.
   Parallelization: Wave D | Blocked by: 6,7,9 | Blocks: 16
   References: user request endpoints 11-12; `TSD.md:124-126`; `TSD.md:225`.
@@ -329,7 +329,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - walk-in with an existing patient; failure - admin calls `/pasien/list` returns 403 `ERR-AUTH-03`; inactive/unknown sesi returns 422 `ERR-RSV-05`. Evidence `.omo/evidence/task-15-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add patient identity list and walk-in registration`
 
-- [ ] 16. Implement reservation list, reschedule, cancel and status transition (13-15, 19)
+- [x] 16. Implement reservation list, reschedule, cancel and status transition (13-15, 19)
   What to do / Must NOT do: `/reservasi/list` filters tanggal/sesi_id/status/pasien_id/q plus pagination, ordered by session date and `estimasi_jam`. `PATCH /reservasi/:id/jadwal` (ADMIN) body `{ sesi_id_baru, alasan }` calls `sp_reschedule_reservasi`; `PATCH /reservasi/:id/batal` (ADMIN) body `{ alasan }` calls it with NULL. `PATCH /reservasi/:id/status` (BIDAN) accepts only MENUNGGU to DIPANGGIL, DIPANGGIL to SELESAI, and DIPANGGIL back to MENUNGGU; anything else returns 409 `ERR-RSV-04`. Direct UPDATE for status only (the trigger audits it). BIDAN must not reschedule.
   Parallelization: Wave D | Blocked by: 6,9,15 | Blocks: 19,20
   References: user request endpoints 13-15 and 19; `TSD.md:127-133`; `TSD.md:209`.
@@ -353,7 +353,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - add ALERGI_OBAT then `fn_cek_alergi` returns 1; failure - ALERGI_OBAT without item_id returns 422; unknown pasien returns 404 `ERR-RME-01`. Evidence `.omo/evidence/task-18-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add RME reading, allergy and red-flag endpoints`
 
-- [ ] 19. Implement visit creation with TVP prescription and append-only note (25-26)
+- [x] 19. Implement visit creation with TVP prescription and append-only note (25-26)
   What to do / Must NOT do: `POST /pasien/:id/kunjungan` body `{ reservasi_id?, layanan_id, tanggal_kunjungan?, keluhan, pemeriksaan_fisik, diagnosis, tindakan, catatan_bebas?, koreksi_dari_id?, resep: [{ item_id, jumlah, aturan_pakai }] }`; require a `RED_FLAG_CONFIRMED` audit row for this pasien, this bidan, and today (Asia/Jakarta) else 409 `ERR-RME-03`; call `sp_simpan_kunjungan` with a `sql.Table('tvp_resep')`; when `koreksi_dari_id` is present verify the referenced visit exists and belongs to the same patient (else 422 `ERR-VAL-01`); return `{ kunjungan_id, tagihan_id, total_tagihan }`. `PATCH /kunjungan/:id/catatan` body `{ catatan }` appends `\n[YYYY-MM-DD HH:mm WIB][<username>] <catatan>` to `catatan_bebas` without overwriting; 404 `ERR-RME-02` when missing. Do not pre-validate allergy or stock in TypeScript.
   Parallelization: Wave D | Blocked by: 6,9,10,16 | Blocks: 25,27
   References: user request endpoints 25-26; `TSD.md:54-57`; `TSD.md:140-141`; `TSD.md:210`; draft decisions 10-14.
@@ -361,7 +361,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - full visit then `v_tagihan_detail` matches; failure - quantity above stock returns 409 `ERR-INV-02`; qty 0 returns 422 `ERR-VAL-01`. Evidence `.omo/evidence/task-19-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add visit creation with prescription and notes`
 
-- [ ] 20. Implement RME PDF export (27)
+- [x] 20. Implement RME PDF export (27)
   What to do / Must NOT do: `src/utils/pdf.ts` builds an A4 document with pdfkit: practice header, patient identity, active allergies/red flags, visit table (date, diagnosis, action, prescription), generated-at footer. `POST /pasien/:id/rme/export` sets `Content-Type: application/pdf` and `Content-Disposition: attachment; filename="RME-<nama>-<date>.pdf"`, inserts `audit_logs` `aksi='DATA_EXPORTED'`, then pipes the document to `res` (no temp file). No billing data, no other patients.
   Parallelization: Wave D | Blocked by: 6,16,18 | Blocks: 26,27
   References: user request endpoint 27; `TSD.md:54`; `TSD.md:142`; `TSD.md:224`.
@@ -369,7 +369,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - export the seeded patient; failure - unknown patient returns 404 `ERR-RME-01`; a patient with no visits still returns a valid PDF. Evidence `.omo/evidence/task-20-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add RME PDF export with audit trail`
 
-- [ ] 21. Implement billing detail and list (28, 30)
+- [x] 21. Implement billing detail and list (28, 30)
   What to do / Must NOT do: `POST /kunjungan/:id/tagihan/detail` (ADMIN) reads `v_tagihan_detail` (rincian, payments, sisa) and returns 404 `ERR-FIN-01` when absent. `POST /tagihan/list` (ADMIN) filters status/date range/pasien/q plus pagination, newest first. BIDAN has no access.
   Parallelization: Wave E | Blocked by: 6,9 | Blocks: 22,23
   References: user request endpoints 28 and 30; `TSD.md:144-146`.
@@ -377,7 +377,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - detail matches DB sums; failure - unknown kunjungan returns 404 `ERR-FIN-01`. Evidence `.omo/evidence/task-21-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add billing detail and list endpoints`
 
-- [ ] 22. Implement payment recording (29)
+- [x] 22. Implement payment recording (29)
   What to do / Must NOT do: `POST /tagihan/:id/pembayaran` (ADMIN) body `{ jumlah, jalur }` with jalur in MANDIRI/BPJS/ASURANSI; calls `sp_catat_pembayaran` with `@dicatat_oleh` and `@ip`; returns updated totals/status; maps `ERR-FIN-02` on overpayment. Reject zero/negative.
   Parallelization: Wave E | Blocked by: 6,9,21 | Blocks: 23
   References: user request endpoint 29; `TSD.md:56`; `TSD.md:145`; `TSD.md:211`.
@@ -385,7 +385,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - two installments summing to total yield LUNAS; failure - paying total + 1 returns 409 `ERR-FIN-02`; `jumlah: 0` returns 422 `ERR-VAL-01`. Evidence `.omo/evidence/task-22-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add payment recording endpoint`
 
-- [ ] 23. Implement finance recap (31)
+- [x] 23. Implement finance recap (31)
   What to do / Must NOT do: `POST /keuangan/rekap/list` (ADMIN, BIDAN) body `{ dari, sampai, grup: 'HARIAN' | 'BULANAN' }` default HARIAN, maximum span 366 days, reading `v_rekap_pendapatan`; returns `{ periode, jumlah_transaksi, total_pendapatan }` rows plus `meta` totals. Inverted or out-of-range dates return 422 `ERR-RPT-01`.
   Parallelization: Wave E | Blocked by: 6,8,21 | Blocks: 27
   References: user request endpoint 31; `TSD.md:43`; `TSD.md:147`.
@@ -401,7 +401,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - create an item with stock 0 shows status HABIS; failure - negative stock returns 422 `ERR-VAL-01`; unknown id returns 404 `ERR-INV-01`. Evidence `.omo/evidence/task-24-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add inventory list, create and update`
 
-- [ ] 25. Implement restock and stock history (35-36)
+- [x] 25. Implement restock and stock history (35-36)
   What to do / Must NOT do: `POST /inventaris/:id/restock` body `{ jumlah, harga_beli?, tgl_kedaluwarsa? }` calls `sp_restock_item` and returns the new stock. `POST /inventaris/:id/riwayat/list` filters jenis/date range plus pagination from `v_riwayat_stok_item`. No direct stock mutation.
   Parallelization: Wave E | Blocked by: 6,9,24 | Blocks: 26
   References: user request endpoints 35-36; `TSD.md:57`; `TSD.md:152-153`; `TSD.md:212`.
@@ -409,7 +409,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - restock then a visit deducts; failure - `jumlah: -1` returns 422 `ERR-VAL-01`; unknown item returns 404 `ERR-INV-01`. Evidence `.omo/evidence/task-25-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add restock and stock history endpoints`
 
-- [ ] 26. Implement price list, change and history (37-39)
+- [x] 26. Implement price list, change and history (37-39)
   What to do / Must NOT do: `POST /harga/list` (ADMIN, BIDAN) lists current prices from `v_harga_berlaku` with ref_tipe/q plus pagination. `PUT /harga/:ref_tipe/:ref_id` (ADMIN) body `{ harga, berlaku_dari, alasan }` calls `sp_ubah_harga`; `ref_tipe` must be ITEM or LAYANAN else 422 `ERR-VAL-02`. `POST /harga/:ref_tipe/:ref_id/riwayat/list` returns history ordered `berlaku_dari DESC`. Never update price rows in place.
   Parallelization: Wave E | Blocked by: 6,8,9 | Blocks: 27
   References: user request endpoints 37-39; `TSD.md:58`; `TSD.md:154-156`; `TSD.md:213`.
@@ -417,7 +417,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - change a layanan price then a new visit uses the new snapshot; failure - `harga: -5` returns 422 `ERR-PRC-01`; invalid ref_tipe returns 422 `ERR-VAL-02`. Evidence `.omo/evidence/task-26-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add price list, change and history`
 
-- [ ] 27. Implement analytics: summary, service trend and busiest hours (40-42)
+- [x] 27. Implement analytics: summary, service trend and busiest hours (40-42)
   What to do / Must NOT do: `POST /laporan/ringkasan/list` body `{ dari, sampai }` returns kunjungan count, new patients, reservations, revenue, and unpaid bills from the views. `POST /laporan/tren-layanan/list` body `{ dari, sampai, grup: 'BULANAN' | 'HARIAN' }` returns per-period per-layanan counts plus top diagnoses grouped from `kunjungan.diagnosis`. `POST /laporan/jam-tersibuk/list` returns the last-30-day hour histogram from `v_jam_tersibuk` (24 buckets). Invalid ranges return 422 `ERR-RPT-01`. BIDAN only.
   Parallelization: Wave F | Blocked by: 6,8,23 | Blocks: 28
   References: user request endpoints 40-42; `TSD.md:59`; `TSD.md:157-160`.
@@ -425,7 +425,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - seed visits then the trend includes the layanan; failure - future `dari` returns 422 `ERR-RPT-01`; admin token returns 403. Evidence `.omo/evidence/task-27-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add analytics summary, trend and busiest hours`
 
-- [ ] 28. Implement revenue comparison decomposition (43)
+- [x] 28. Implement revenue comparison decomposition (43)
   What to do / Must NOT do: `POST /laporan/perbandingan/list` body `{ periode_a: { dari, sampai }, periode_b: { dari, sampai }, grup?: 'LAYANAN' }`. Per layanan compute V0/P0 (period A qty and average price) and V1/P1 (period B); return `volume_effect = (V1 - V0) * P0`, `price_effect = V0 * (P1 - P0)`, `interaction = (V1 - V0) * (P1 - P0)`, `delta = V1 * P1 - V0 * P0`, plus totals and `meta.formula`. Both ranges validated else 422 `ERR-RPT-01`. No stored procedure.
   Parallelization: Wave F | Blocked by: 6,8,27 | Blocks: 29
   References: user request endpoint 43; `TSD.md:59`; `TSD.md:161`.
@@ -433,7 +433,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - assert the identity above; failure - missing/overlapping periods return 422 `ERR-RPT-01` or 422 `ERR-VAL-01`. Evidence `.omo/evidence/task-28-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add revenue decomposition comparison`
 
-- [ ] 29. Implement report export PDF/Excel (44)
+- [x] 29. Implement report export PDF/Excel (44)
   What to do / Must NOT do: `POST /laporan/export` body `{ format: 'pdf' | 'excel', laporan: 'ringkasan' | 'tren-layanan' | 'jam-tersibuk' | 'perbandingan', dari, sampai }`. Excel via `exceljs` `writeBuffer()` with the xlsx MIME and `Content-Disposition: attachment; filename="laporan-<slug>-<date>.xlsx"`. PDF via pdfkit piped to `res` with a simple table. Reuse the todo 27-28 service queries. Invalid combinations return 422 `ERR-RPT-01`. No temp files.
   Parallelization: Wave F | Blocked by: 6,8,28 | Blocks: 37
   References: user request endpoint 44; `TSD.md:59`; `TSD.md:162`.
@@ -441,7 +441,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - export each of the 4 reports; failure - `format: 'csv'` returns 422 `ERR-RPT-01`; admin token returns 403. Evidence `.omo/evidence/task-29-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add PDF and Excel report export`
 
-- [ ] 30. Implement public content CRUD (45-48)
+- [x] 30. Implement public content CRUD (45-48)
   What to do / Must NOT do: `POST /konten/list` (ADMIN) returns all rows including unpublished, filtered by tipe/is_published plus pagination. `POST /konten` body `{ tipe, judul, isi?, media_url?, urutan?, is_published? }`. `PATCH /konten/:id` partial. `DELETE /konten/:id` sets `is_published = 0` (soft); missing row returns 404 `ERR-CNT-01`. No hard delete. No admin fields on the public endpoint.
   Parallelization: Wave F | Blocked by: 6,7 | Blocks: 31,32
   References: user request endpoints 45-48; `TSD.md:164-167`; `TSD.md:202`.
@@ -449,7 +449,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - create then publish then see it publicly; failure - patch unknown id returns 404 `ERR-CNT-01`; invalid `tipe` returns 422. Evidence `.omo/evidence/task-30-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add public content CRUD with soft delete`
 
-- [ ] 31. Implement notification log list and resend (49-50)
+- [x] 31. Implement notification log list and resend (49-50)
   What to do / Must NOT do: `POST /notifikasi/log/list` (ADMIN) filters jenis/status/date plus pagination, newest first. `POST /notifikasi/:id/kirim-ulang` (ADMIN): when `retry_count >= 3` return 502 `ERR-NTF-01`; otherwise retry through `wa.ts`, increment `retry_count`, set status TERKIRIM/GAGAL and `waktu_kirim`, return the row. Allow resend only for CONFIRMATION, PENGINGAT_H1, PERUBAHAN, INVENTARIS; OTP rows return 422 `ERR-NTF-01` (documented).
   Parallelization: Wave F | Blocked by: 6,7 | Blocks: 32
   References: user request endpoints 49-50; `TSD.md:60`; `TSD.md:168-169`; `TSD.md:230-231`.
@@ -457,7 +457,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - a seeded GAGAL row with retry 0 becomes TERKIRIM with a stub WA; failure - unknown id returns 404 `ERR-NTF-01`; OTP row returns 422. Evidence `.omo/evidence/task-31-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add notification log and resend`
 
-- [ ] 32. Implement audit log search (51)
+- [x] 32. Implement audit log search (51)
   What to do / Must NOT do: `POST /audit-logs/list` (BIDAN only) filters `user_id`, `aksi`, `entitas`, `entitas_id`, and date range plus pagination from `v_audit_log_detail`, ordered `created_at DESC`. Return `nilai_lama`/`nilai_baru` parsed into JSON objects when present. ADMIN must get 403. No writes.
   Parallelization: Wave F | Blocked by: 6,8 | Blocks: 37
   References: user request endpoint 51; `TSD.md:61`; `TSD.md:170`; `TSD.md:224-226`.
@@ -465,7 +465,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - filter `aksi=VIEW_RME` shows the RME open; failure - invalid date range returns 422; admin returns 403 `ERR-AUTH-03`. Evidence `.omo/evidence/task-32-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add audit log search`
 
-- [ ] 33. Implement cron jobs and wire startup
+- [x] 33. Implement cron jobs and wire startup
   What to do / Must NOT do: `src/jobs/reminderH1.job.ts` schedules `env.CRON_REMINDER_H1` with `{ timezone: 'Asia/Jakarta' }`: find tomorrow's MENUNGGU reservations without a PENGINGAT_H1 log today, insert log_notifikasi ANTRE, send WA, update TERKIRIM/GAGAL. `src/jobs/inventoryWeekly.job.ts` schedules `env.CRON_INVENTORY_WEEKLY`: build one summary of items with `fn_status_stok` in HABIS/MENIPIS/KEDALUWARSA, send it to the ADMIN phone, insert one INVENTARIS log row. `src/jobs/index.ts` registers both only when `NODE_ENV !== 'test'`, logs schedules, and catches errors so a job never crashes the process. No third job.
   Parallelization: Wave G | Blocked by: 6,7,30,31 | Blocks: 38
   References: user request Bagian 1.5; `TSD.md:229-231`; `TSD.md:60`.
@@ -473,7 +473,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - call `runReminderH1()` with a seeded tomorrow reservation and get one log row; failure - WA down leaves the row GAGAL and the process alive. Evidence `.omo/evidence/task-33-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(backend): add reminder and inventory cron jobs`
 
-- [ ] 34. Build the Postman generator and emit both JSON files
+- [x] 34. Build the Postman generator and emit both JSON files
   What to do / Must NOT do: `backend/docs/postman/generate-postman.mjs` (ESM) holds a spec array of all 51 requests (folder, name, method, path, roles, body example, error codes, saved variables) and writes `Praktik_Mandiri_Bidan_API.postman_collection.json` (schema v2.1.0) plus `Local_Dev.postman_environment.json`. Exactly 11 folders in this order: 1. Auth, 2. Public, 3. Pendaftaran & Antrean, 4. RME & Keselamatan Pasien, 5. Keuangan & Tagihan, 6. Inventaris, 7. Harga, 8. Laporan Analitik, 9. Konten Publik, 10. Notifikasi, 11. Audit Logs. Every request has a description (allowed roles, FSD reference, possible error codes), a valid JSON body example, `Authorization: Bearer {{token}}` on protected routes, and URL `{{baseUrl}}/api/v1/...`. Test scripts save: login token + user_id, patient create pasien_id, session create sesi_id, reservation reservasi_id, visit kunjungan_id + tagihan_id, inventory create item_id (via `pm.environment.set`). Generate then commit; never hand-write the JSON. No extra requests.
   Parallelization: Wave G | Blocked by: 6,12-32 | Blocks: 37
   References: user request Bagian 1.6; endpoint inventory above; `TSD.md:110-170`.
@@ -481,7 +481,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - a node walk asserts 51 requests, 11 folders, every request has a description; failure - remove one spec entry and confirm the count assertion fails, then restore. Evidence `.omo/evidence/task-34-praktik-bidan-monorepo.txt`
   Commit: Y | `docs(api): generate Postman collection and environment`
 
-- [ ] 35. Scaffold `frontend/` with Vite 5.4 + React 18.3 + TypeScript and Tailwind v3
+- [x] 35. Scaffold `frontend/` with Vite 5.4 + React 18.3 + TypeScript and Tailwind v3
   What to do / Must NOT do: create the Vite react-ts structure manually. `package.json`: react 18.3.1, react-dom 18.3.1, vite ^5.4.0, @vitejs/plugin-react ^4.3.0, typescript ^5.6.0, @types/react 18.3.x, @types/react-dom 18.3.x, @types/node ^22, tailwindcss ^3.4.0, postcss ^8.4.0, autoprefixer ^10.4.0, tailwindcss-animate, class-variance-authority, clsx, tailwind-merge, lucide-react, @radix-ui/react-slot, @radix-ui/react-label, react-router-dom ^6, axios ^1, recharts ^2. Also `index.html`, `vite.config.ts` (react plugin + alias `@` via `fileURLToPath(new URL('./src', import.meta.url))`), `tsconfig.json` (references to app/node, `files: []`), `tsconfig.app.json` (baseUrl/paths, strict, `jsx: react-jsx`, `composite: true`, `tsBuildInfoFile` under `node_modules/.tmp`), `tsconfig.node.json` (`composite: true`, includes `vite.config.ts`), `postcss.config.js` (ESM export, tailwindcss + autoprefixer), `tailwind.config.js` (ESM export, content index.html + src, darkMode class, shadcn tokens, borderRadius, tailwindcss-animate), `.env.example` (`VITE_API_BASE_URL=http://localhost:3000/api/v1`), `src/vite-env.d.ts`, `src/main.tsx`, and `src/index.css` with the shadcn HSL `:root`/`.dark` variables, the three Tailwind directives, and base border/body rules. Scripts: `dev: vite`, `build: tsc -b && vite build`, `typecheck: tsc -p tsconfig.app.json --noEmit`, `preview: vite preview`. No routes, pages, API clients, or charts.
   Parallelization: Wave G | Blocked by: 1 | Blocks: 36
   References: user request Bagian 2.1-2.2; `TSD.md:77`; draft decision 15.
@@ -489,7 +489,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - build output exists; failure - importing `@/lib/utils` before todo 36 fails typecheck, proving the alias is wired. Evidence `.omo/evidence/task-35-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(frontend): scaffold Vite React TypeScript with Tailwind`
 
-- [ ] 36. Add shadcn/ui config, `cn` util, five components and typed starter App
+- [x] 36. Add shadcn/ui config, `cn` util, five components and typed starter App
   What to do / Must NOT do: `components.json` with `$schema`, style `new-york`, `rsc: false`, `tsx: true`, tailwind config `tailwind.config.js`, css `src/index.css`, baseColor `slate`, cssVariables true, and aliases components/utils/ui/lib/hooks. `src/lib/utils.ts` exports `cn(...inputs)` from clsx + twMerge. Create `src/components/ui/button.tsx` (cva variants default/secondary/outline/ghost/destructive + sizes, `asChild` via Radix Slot), `card.tsx` (Card/Header/Title/Description/Content/Footer), `input.tsx`, `label.tsx` (Radix Label), `badge.tsx` (cva variants). `src/App.tsx` is a typed starter: centered clean layout, project title "Sistem Digitalisasi Praktik Mandiri Bidan", subtitle "Praktik Mandiri Bdn. Ria Indrasti J., S.Keb", one Card with a short description, an Input + Label (placeholder only, no handlers required), a Badge, and a Button - all from `@/components/ui/*`. No state, no data fetching, no router.
   Parallelization: Wave G | Blocked by: 35 | Blocks: 39
   References: user request Bagian 2.3-2.4; shadcn `components.json` schema; `TSD.md:77`.
@@ -497,7 +497,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - build and preview show the card and button; failure - temporarily pass an invalid Button variant and confirm typecheck fails, then revert. Evidence `.omo/evidence/task-36-praktik-bidan-monorepo.txt`
   Commit: Y | `feat(frontend): add shadcn components and starter screen`
 
-- [ ] 37. Write the root `README.md` (local run, migration order, Postman, production notes)
+- [x] 37. Write the root `README.md` (local run, migration order, Postman, production notes)
   What to do / Must NOT do: sections: Prerequisites (Node 22; SQL Server 2025 already installed locally with `sqlcmd`; SSMS optional; no Docker required), Development (start the local SQL Server service; `cp backend/.env.example backend/.env` and fill `DB_PASSWORD`; run `01`-`05` in order via the documented `sqlcmd` command; `cd backend && npm install && npm run dev`; `cd frontend && npm install && npm run dev`), Seed credentials (`bidan`/`Bidan#2026`, `admin`/`Admin#2026`, change in production), Postman import (collection + environment, set baseUrl, login), Production deployment (Vercel: build command `npm run build`, output `dist`, env `VITE_API_BASE_URL`; backend: PM2 + IIS/nginx reverse proxy, HTTPS, `CORS_ORIGINS` allowlist, `trust proxy`, native SQL Server with daily full + 30-minute log backups), Troubleshooting (instance not listening on 1433 or wrong port; mixed-mode auth disabled; `sqlcmd -C` needed for the self-signed dev certificate; bcrypt native build note; port 1433 exposure warning). Keep commands copy-pasteable and consistent with the actual scripts.
   Parallelization: Wave H | Blocked by: 33,34 | Blocks: 39
   References: user request "ringkasan cara menjalankan"; `TSD.md:64-66`; `TSD.md:72-80`; draft decisions 19-20 and 22.
@@ -505,7 +505,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - follow the README on a clean checkout in order; failure - run SQL files out of order and confirm the README's documented failure is what occurs, then restore. Evidence `.omo/evidence/task-37-praktik-bidan-monorepo.txt`
   Commit: Y | `docs(root): add setup, migration, Postman and deployment guide`
 
-- [ ] 38. Run the dev database migration and end-to-end API smoke
+- [x] 38. Run the dev database migration and end-to-end API smoke
   What to do / Must NOT do: confirm the already-installed local SQL Server 2025 is reachable with `sqlcmd -C -S "$DB_HOST,$DB_PORT" -U "$DB_USER" -P "$DB_PASSWORD" -Q "SELECT @@VERSION"` (expect a 16.x/17.x banner and no login/port error); execute `01`-`05` in order with the documented sqlcmd invocation; verify 18 tables, 4 functions, 14 views, 6 procedures, 15 audit triggers + 1 immutable. Start the backend against the local instance, then run the smoke chain with curl: login bidan -> token; `POST /public/layanan/list` with meta; `POST /public/reservasi` for a new patient; `POST /pasien/walk-in` as admin; RME detail as bidan (audit VIEW_RME); red-flag confirmation; `POST /pasien/:id/kunjungan` with one resep item; `POST /kunjungan/:id/tagihan/detail`; `POST /tagihan/:id/pembayaran` for the full amount -> LUNAS; `POST /audit-logs/list` shows the mutations. Capture every request/response and DB counts. If the instance is unreachable (service stopped, wrong port, mixed-mode auth off, wrong password), record the exact `sqlcmd` error and fall back to static review without claiming execution.
   Parallelization: Wave H | Blocked by: 7-11,33 | Blocks: 39
   References: `TSD.md:174-214`; seed data; verification strategy above.
@@ -513,7 +513,7 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
   QA scenarios: happy - full chain above; failure - attempt a quota overrun and an overpayment and confirm 409 codes, then continue. Evidence `.omo/evidence/task-38-praktik-bidan-monorepo.txt` plus `.omo/evidence/task-38-smoke.json`
   Commit: Y | `test(e2e): verify migration and core API flows against dev database`
 
-- [ ] 39. Final install, typecheck, build and route audit for both apps
+- [x] 39. Final install, typecheck, build and route audit for both apps
   What to do / Must NOT do: `cd backend && npm install && npx tsc --noEmit && npm run build && npm run audit:routes`; `cd frontend && npm install && npm run typecheck && npx tsc --noEmit && npm run build`. Confirm `backend/dist` exists, `frontend/dist/index.html` exists, the audit prints 51 routes and zero GET, and no `.env` file is committed. Do not modify code in this todo except fixing build/type errors surfaced here.
   Parallelization: Wave H | Blocked by: 35,36,37,38 | Blocks: F1-F4
   References: user request "VERIFIKASI AKHIR"; todo 6 audit script; todo 2/35 scripts.
@@ -525,13 +525,13 @@ Your next move: start work, or run a high-accuracy review first. Full execution 
 
 > Runs in parallel after ALL todos. ALL must APPROVE. Surface results and wait for the user's explicit okay before declaring complete.
 
-- [ ] F1. Plan compliance audit
+- [x] F1. Plan compliance audit
   Verify every one of the 51 endpoints exists with the exact method/path/role, the envelope and error catalogue match, all 18 tables/functions/views/procedures/triggers exist, cron schedules match env, and no Must-NOT-Have item exists (especially zero GET, zero ORM, zero frontend pages). Command set: `npm run audit:routes`, SQL object counts, grep for forbidden patterns. Evidence `.omo/evidence/F1-praktik-bidan-monorepo.txt`.
-- [ ] F2. Code quality review
+- [x] F2. Code quality review
   Review the backend for layering violations (controllers thin, services own logic, repositories own SQL), parameterized queries everywhere, no `SELECT *`, typed error mapping, no leaked secrets, `strict` types with no `any` escape hatches, and correct connection release. Evidence `.omo/evidence/F2-praktik-bidan-monorepo.txt`.
-- [ ] F3. Real manual QA
+- [x] F3. Real manual QA
   Execute the full smoke chain from todo 38 against the local SQL Server 2025 instance (or record the exact connection failure and the static fallback), plus boot-without-DB envelope check, malformed JSON, 401/403/422/423/429 paths, PDF/XLSX downloads and Postman JSON validation. Evidence `.omo/evidence/F3-praktik-bidan-monorepo.txt`.
-- [ ] F4. Scope fidelity
+- [x] F4. Scope fidelity
   Diff the delivered tree against the Scope file inventory: every file present, no extra business feature, no frontend router usage, no test framework, no Dockerfile or `docker-compose.yml`, README accurate. Evidence `.omo/evidence/F4-praktik-bidan-monorepo.txt`.
 
 ## Commit strategy

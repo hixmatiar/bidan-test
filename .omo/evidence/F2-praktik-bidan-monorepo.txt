@@ -1,0 +1,95 @@
+TASK F2 - Final wave: Code quality review of backend/src
+Date: 2026-11-15
+Task source: plan lines 530-531 (F2. Code quality review; evidence .omo/evidence/F2-praktik-bidan-monorepo.txt)
+Target: /Users/pikachen/Documents/UNS/SEM 3/RSI/praktik-bidan/backend/src
+Mode: READ-ONLY review. No product code modified. No commit. dbo.users not touched.
+
+== Checklist verdicts (backend/src) ==
+
+1) Controllers thin (no SQL)                 -> PASS
+   - modules/*/*controller.ts delegate to module service, receiving ConnectionPool via
+     res.locals.db (set by middlewares/dbSession.ts dbSessionContext).
+   - No .query( / INSERT INTO / UPDATE / EXEC / FROM found in any controller
+     (modules/* + legacy src/controllers stubs are pass-through only; grep RC=1 = no SQL).
+   - Async error forwarding: modules/auth uses local `handle` async catcher (fn.catch(next));
+     other controllers use try/catch -> next(error).
+
+2) Services own logic / business rules      -> PASS (delegation noted)
+   - auth.service: lockout (ERR-LOCK), failed-attempt increments, OTP reset, password hash rules.
+   - reservasi.service: ALLOWED_TRANSITIONS status machine, overlap/quotas via stored procs, WA queue.
+   - notifikasi.service: queue/deliver/resend (retry<=3) business rules.
+   - Note: konten.service + auditLogs.service are thin pass-throughs to repository (no rule) - acceptable.
+
+3) Repos own SQL, parameterized (@p) all  -> PASS
+   - 13 modules/*/*repository.ts all use .input(...) for bind values.
+   - No user input interpolated into SQL (only internal composition of static countSql/listSql strings).
+   - Explicit column lists used; no SELECT *.
+
+4) No 'SELECT *'                            -> PASS (0 matches in backend/src).
+
+5) Typed AppError -> HTTP mapping           -> PASS
+   - utils/errors.ts: ERROR_CATALOG typed ErrorCode -> http (+message); AppError(code, message?, errors?, http?).
+   - utils/response.ts fail(): res.status(error.http).json(ApiFailure).
+   - middlewares/errorHandler.ts: AppError -> fail; ZodError -> ERR-VAL-01; JSON parse SyntaxError -> ERR-VAL-04;
+     sql.RequestError/ConnectionError -> ERR-SYS-02; fallback ERR-SYS-01; notFound -> ERR-SYS-01/404.
+
+6) No secrets committed                     -> PASS
+   - git ls-files: only backend/.env.example + frontend/.env.example tracked; backend/.env gitignored (.gitignore: .env).
+   - .env.example values are CHANGE_ME / change-me placeholders only; git log --all -- backend/.env -> no commits.
+   - Minor observation: backend/src/scripts/route-audit.ts dev fallbacks
+     (JWT_SECRET 'route-audit-secret-min-32-characters', DB_PASSWORD 'route-audit', WA_API_TOKEN 'route-audit').
+
+7) Strict TS, no unexplained 'any'          -> FAIL
+   - backend/tsconfig.json: strict true; backend `npx tsc --noEmit` -> exit 0 (no output).
+   - Explicit `any` escape hatches found in backend/src/modules/laporan/laporan.controller.ts:
+       L60: flattenRows(laporan: string, data: any): { sheet: string; columns: string[]; rows: any[][] }[]
+       L73/78/86/92: data.*.map((r: any) => [...])
+       L96: async function sendExcel(..., data: any): Promise<void>
+       L110: function sendPdf(..., data: any): void
+   - Net: strict flag passes, but 'any' escape hatches present -> checklist item FAILED.
+
+8) acquire()/release() pairing               -> PASS
+   - Only consumer of acquire() is middlewares/dbSession.ts (utils/db.ts: getPool shared pool, acquire dedicated, release close).
+   - dbSession: acquire in try/catch; releaseOnce guard (released flag) on res.once('finish')+res.once('close');
+     error path calls releaseOnce() before next(error). Shared pool users (jobs, notifikasi deliver) use getPool
+     (pool-managed) and do not hand-release - not leaked.
+
+9) No console.log of passwords/tokens       -> PASS
+   - console.log only in server.ts (startup/shutdown), jobs/* (cron summaries), scripts/route-audit.ts (route dump).
+   - console.error only error paths (errorHandler non-prod stack, job/notif failures).
+   - No password/token/otp/secret logging found.
+
+== Additional checks ==
+- Parameterized @p everywhere: PASS (all repos use .input; no interpolated user input in SQL).
+- tsc --noEmit backend: exit 0, no errors.
+- No tracked .env; no real secrets committed.
+- No backend servers left running: `node dist/server.js` (PIDs 59109/61280) were terminated during this task;
+  no backend listeners remain (ports 4106/4117/3000/5173 free of backend processes).
+
+== Verdict ==
+FAIL
+
+Rationale: F2 checklist item 7 (strict TypeScript with no unexplained 'any' escape hatches) FAILED due to explicit
+`any` usage in backend/src/modules/laporan/laporan.controller.ts (lines 60, 73, 78, 86, 92, 96, 110). All other
+checked areas (controllers thin, service layering, @p parameterization, no SELECT *, AppError mapping, no
+committed secrets, acquire/release, no secret logging) passed.
+
+F2 code-quality gate: FAIL - blocking remediation: replace `any` in laporan controller with typed report payload
+interfaces (do not modify code in this task; remediation belongs to a later task).
+
+FINISH-F2-abc
+[2026-11-15] F2 (laporan.controller.ts) - single blocker fix
+- Removed explicit any: flattenRows uses LaporanPayload union + Cell[][]; sendExcel/sendPdf typed as LaporanPayload; export uses result.data as LaporanPayload after getExportData.
+- Interfaces added: RingkasanPayload, TrenLayananPayload (tren + top_diagnosis), JamTersibukPayload (buckets), PerbandinganPayload (per_layanan + totals + meta). Row cells typed as (string|number|null)[][] via Cell.
+- No 'any'/'as any' remain in backend/src/modules/laporan/*.ts (grep clean).
+- Verified: cd backend && npx tsc --noEmit (ok), npm run build (ok), npm run audit:routes -> TOTAL 51 / GET 0.
+- Runtime test (PORT=4110, node dist/server.js): server started (log shows listening). Login attempts with provided creds failed (422/401) in this env; export POST with pdf/excel not executed due to auth. Server process left running context noted; cleanup attempted.
+
+== POST-REMEDIATION RE-VERDICT (orchestrator, 2026-11-15 09:05 WIB) ==
+Commit 6662145 "refactor(backend): type laporan export payloads" replaced every explicit `any`
+in backend/src/modules/laporan/laporan.controller.ts with explicit payload interfaces and a
+row-cell type (string | number | null)[][]; behaviour unchanged.
+Recheck: grep -c ': any|<any>|as any' src/modules/laporan/*.ts = 0; npx tsc --noEmit = 0;
+npm run build = 0; npm run audit:routes = TOTAL 51 / GET 0; live POST /laporan/export
+perbandingan pdf = 200 (%PDF) and excel = 200 (PK).
+F2 FINAL VERDICT: PASS (item 7 now satisfied; all other items were already PASS).
