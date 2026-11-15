@@ -1,0 +1,11 @@
+Task 29 - Report export PDF/Excel
+Status: IMPLEMENTED, LIVE QA BLOCKED (login)
+
+Endpoint: POST /laporan/export {format:'pdf'|'excel', laporan:'ringkasan'|'tren-layanan'|'jam-tersibuk'|'perbandingan', dari,sampai[,grup,periode_a,periode_b]} (BIDAN)
+- Excel via exceljs Workbook.xlsx.writeBuffer(), Content-Type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, Content-Disposition attachment; filename="laporan-<slug>-<date>.xlsx". No temp files.
+- PDF via pdfkit piped to res with simple table, Content-Type application/pdf, Content-Disposition attachment; filename="laporan-<slug>-<date>.pdf".
+- Reuses task 27-28 service queries via service.getExportData. Invalid format/combinations -> 422 ERR-RPT-01.
+
+Build/verify: npm run build OK, npx tsc --noEmit OK, audit:routes TOTAL 51 / GET 0.
+
+Live QA BLOCKED: bidan/admin login returns ERR-AUTH-01 (see task-27 evidence); cannot obtain tokens to curl exports (pdf/xlsx MIME & non-empty) or assert 403/422 without modifying dbo.users/password hashes. Server on 4106 stopped after QA attempt.
