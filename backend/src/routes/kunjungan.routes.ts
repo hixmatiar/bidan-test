@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
-import { dbSessionContext } from '@/middlewares/dbSession';
+import { dbSessionContext } from '@/middlewares/dbSessionContext';
 import { validate } from '@/middlewares/validate';
 import { tambahCatatan } from '@/modules/rme/rme.controller';
 import {

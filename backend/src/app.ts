@@ -2,7 +2,8 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { env } from '@/config/env';
-import { errorHandler, notFound } from '@/middlewares/errorHandler';
+import { errorHandler } from '@/middlewares/errorHandler';
+import { notFound } from '@/middlewares/notFound';
 import routes from '@/routes';
 
 const app = express();

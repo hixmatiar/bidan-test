@@ -1,0 +1,14 @@
+export * as auditLogsValidators from '@/modules/auditLogs/auditLogs.validators';
+export * as authValidators from '@/modules/auth/auth.validators';
+export * as hargaValidators from '@/modules/harga/harga.validators';
+export * as inventarisValidators from '@/modules/inventaris/inventaris.validators';
+export * as keuanganValidators from '@/modules/keuangan/keuangan.validators';
+export * as kontenValidators from '@/modules/konten/konten.validators';
+export * as laporanValidators from '@/modules/laporan/laporan.validators';
+export * as notifikasiValidators from '@/modules/notifikasi/notifikasi.validators';
+export * as pasienValidators from '@/modules/pasien/pasien.validators';
+export * as publicValidators from '@/modules/public/validators';
+export * as reservasiValidators from '@/modules/reservasi/reservasi.validators';
+export * as rmeValidators from '@/modules/rme/rme.validators';
+export * as sesiValidators from '@/modules/sesi/validators';
+export * as tagihanValidators from '@/modules/tagihan/tagihan.validators';

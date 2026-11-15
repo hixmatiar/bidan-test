@@ -12,7 +12,7 @@ import {
   resetVerifySchema,
 } from '@/modules/auth/auth.validators';
 import { authMiddleware } from '@/middlewares/auth';
-import { dbSessionContext } from '@/middlewares/dbSession';
+import { dbSessionContext } from '@/middlewares/dbSessionContext';
 import { publicRateLimiter } from '@/middlewares/rateLimit';
 import { validate } from '@/middlewares/validate';
 

@@ -1,0 +1,14 @@
+export * as auditLogsService from '@/modules/auditLogs/auditLogs.service';
+export * as authService from '@/modules/auth/auth.service';
+export * as hargaService from '@/modules/harga/harga.service';
+export * as inventarisService from '@/modules/inventaris/inventaris.service';
+export * as keuanganService from '@/modules/keuangan/keuangan.service';
+export * as kontenService from '@/modules/konten/konten.service';
+export * as laporanService from '@/modules/laporan/laporan.service';
+export * as notifikasiService from '@/modules/notifikasi/notifikasi.service';
+export * as pasienService from '@/modules/pasien/pasien.service';
+export * as publicService from '@/modules/public/service';
+export * as reservasiService from '@/modules/reservasi/reservasi.service';
+export * as rmeService from '@/modules/rme/rme.service';
+export * as sesiService from '@/modules/sesi/service';
+export * as tagihanService from '@/modules/tagihan/tagihan.service';

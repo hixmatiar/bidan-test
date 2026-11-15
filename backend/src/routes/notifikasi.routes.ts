@@ -8,7 +8,7 @@ import {
   notifikasiIdParamsSchema,
 } from '@/modules/notifikasi/notifikasi.validators';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
-import { dbSessionContext } from '@/middlewares/dbSession';
+import { dbSessionContext } from '@/middlewares/dbSessionContext';
 import { validate } from '@/middlewares/validate';
 
 const router = Router();

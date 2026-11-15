@@ -74,6 +74,4 @@ export function errorHandler(
   fail(res, new AppError('ERR-SYS-01'));
 }
 
-export function notFound(_req: Request, res: Response): void {
-  fail(res, new AppError('ERR-SYS-01', 'Endpoint tidak ditemukan', undefined, 404));
-}
+

@@ -1,0 +1,14 @@
+export * as auditLogsRepository from '@/modules/auditLogs/auditLogs.repository';
+export * as authRepository from '@/modules/auth/auth.repository';
+export * as hargaRepository from '@/modules/harga/harga.repository';
+export * as inventarisRepository from '@/modules/inventaris/inventaris.repository';
+export * as keuanganRepository from '@/modules/keuangan/keuangan.repository';
+export * as kontenRepository from '@/modules/konten/konten.repository';
+export * as laporanRepository from '@/modules/laporan/laporan.repository';
+export * as notifikasiRepository from '@/modules/notifikasi/notifikasi.repository';
+export * as pasienRepository from '@/modules/pasien/pasien.repository';
+export * as publicRepository from '@/modules/public/repository';
+export * as reservasiRepository from '@/modules/reservasi/reservasi.repository';
+export * as rmeRepository from '@/modules/rme/rme.repository';
+export * as sesiRepository from '@/modules/sesi/repository';
+export * as tagihanRepository from '@/modules/tagihan/tagihan.repository';

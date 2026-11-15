@@ -7,7 +7,7 @@ import {
   trenLayanan,
 } from '@/modules/laporan/laporan.controller';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
-import { dbSessionContext } from '@/middlewares/dbSession';
+import { dbSessionContext } from '@/middlewares/dbSessionContext';
 
 const router = Router();
 

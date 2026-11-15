@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { dbSessionContext } from '@/middlewares/dbSession';
+import { dbSessionContext } from '@/middlewares/dbSessionContext';
 import { publicRateLimiter } from '@/middlewares/rateLimit';
 import { validate } from '@/middlewares/validate';
 import { cekPasien } from '@/modules/pasien/pasien.controller';

@@ -1,0 +1,59 @@
+# F4 remediation - praktik-bidan-monorepo (align backend structure with plan file inventory)
+
+Date: 2026-11-15
+Inputs: .omo/plans/praktik-bidan-monorepo.md (authoritative file inventory), .omo/evidence/F4-praktik-bidan-monorepo.txt (FAIL findings)
+Scope: behaviour-preserving structural alignment only. No API behaviour change, no dbo.users/hash changes, no servers left running.
+
+## Changes made
+
+1. Renamed `backend/src/middlewares/dbSession.ts` -> `backend/src/middlewares/dbSessionContext.ts`
+   (via git mv semantics: old path deleted, new path added; file content unchanged apart from filename).
+   Updated all importers: every `src/routes/*.routes.ts` that imported `@/middlewares/dbSession`
+   now imports `@/middlewares/dbSessionContext`. `grep -rn "middlewares/dbSession'"` returns no matches.
+2. Added `backend/src/middlewares/notFound.ts` exporting `notFound(_req, res)` (same 404 handler body as before,
+   `fail(res, new AppError('ERR-SYS-01', 'Endpoint tidak ditemukan', undefined, 404))`).
+   `src/middlewares/errorHandler.ts` no longer exports `notFound` (blank lines left, errorHandler unchanged).
+   `src/app.ts` imports `errorHandler` from `@/middlewares/errorHandler` and `notFound` from `@/middlewares/notFound`; wiring order unchanged (notFound still before errorHandler).
+3. Added `backend/src/utils/excel.ts` exporting `buildExcelWorkbook(sheets: ExcelSheetDef[]): Promise<Buffer>`,
+   `excelFilename(slug)`, `EXCEL_CONTENT_TYPE`, `ExcelCell`, `ExcelSheetDef` and the internal `todayJakarta()`.
+   `src/modules/laporan/laporan.controller.ts` now imports from `@/utils/excel` (`ExcelJS` direct import removed);
+   `flattenRows` returns `ExcelSheetDef[]`; same sheets/columns/rows, same `Content-Type`, same
+   `Content-Disposition: attachment; filename="laporan-<slug>-<date>.xlsx"`, same response behaviour.
+   Local `todayJakarta()` retained for the PDF filename path.
+4. Added barrel files (re-exports only, no logic):
+   - `backend/src/validators/index.ts` -> `export * as <name>Validators from '@/modules/<m>/<...>.validators'` for all 14 modules
+   - `backend/src/services/index.ts`   -> `export * as <name>Service from '@/modules/<m>/<...>.service'` for all 14 modules
+   - `backend/src/repositories/index.ts` -> `export * as <name>Repository from '@/modules/<m>/<...>.repository'` for all 14 modules
+   Module-colocated layout kept; nothing moved or rewritten.
+5. Deletions / inventory hygiene:
+   - `frontend/.omo-placeholder`: ABSENT (verified `ls` -> No such file or directory)
+   - `.codegraph` symlink: ABSENT (verified `ls` -> No such file or directory)
+   - `opencode.json` (repo root, not part of deliverable per F4 finding): deleted as `D opencode.json` and committed here.
+   Kept: `backend/scripts/*` (backup-db.sh, smoke-e2e.mjs - task-38 deliverable), `TSD.md`, `2026Ganjil_B_01_TSD.pdf`, `backend/database/*`, Postman docs.
+
+## Verification (all run under 60s each, cwd=backend unless noted)
+
+- `npx tsc --noEmit` -> exit 0 (TSC-OK)
+- `npm run build` -> exit 0 (`tsc && tsc-alias`)
+- `npm run audit:routes` -> output ends with `TOTAL 51` and `GET 0`
+- `grep -c ': any' src/modules/laporan/*.ts` ->
+  laporan.controller.ts:0, laporan.repository.ts:0, laporan.service.ts:0, laporan.validators.ts:0
+- Boot + smoke (PORT=4106, `nohup node dist/server.js`, dev DB from backend/.env; server killed after tests, `kill -0` confirms dead):
+  - POST /api/v1/auth/login {username:bidan, password:Bidan#2026} -> 200, token issued (role BIDAN)
+  - POST /api/v1/laporan/export {laporan:ringkasan, format:pdf, dari:2026-01-01, sampai:2026-12-31}
+    -> HTTP 200, Content-Type application/pdf, 1568 bytes, first bytes `%PDF` (`file`: PDF document 1.3)
+  - POST /api/v1/laporan/export {laporan:ringkasan, format:excel, ...}
+    -> HTTP 200, Content-Type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, 6559 bytes, first bytes `PK` (`file`: Microsoft Excel 2007+)
+  - POST /api/v1/laporan/ringkasan/list {dari:2026-01-01, sampai:2026-12-31} -> HTTP 200,
+    body `{"status":"success","data":{"periode":{"dari":"2026-01-01","sampai":"2026-12-31"},"jumlah_kunjungan":8,"pasien_baru":18,"jumlah_reservasi":17,"total_pendapatan":228000,"tagihan_belum_lunas":4},...}`
+  - Server on 4106 killed; no server left running.
+
+## Notes
+
+- `dbo.users` / password hashes untouched; login smoke used the seeded `bidan` account read-only.
+- No new dependencies; `exceljs` usage unchanged, only relocated into `src/utils/excel.ts`.
+- Working tree also carries unrelated `.omo` bookkeeping modifications (plan checkboxes, ledger) from prior waves;
+  those are NOT part of this commit. `backend/scripts/*` and TSD inputs untouched.
+- Commit: `chore(backend): align structure with plan file inventory`
+
+## RESULT: PASS (F4 structural findings remediated)

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
-import { dbSessionContext } from '@/middlewares/dbSession';
+import { dbSessionContext } from '@/middlewares/dbSessionContext';
 import { validate } from '@/middlewares/validate';
 import { listHarga, listRiwayatHarga, ubahHarga } from '@/modules/harga/harga.controller';
 import { ubahHargaParamsSchema, riwayatListParamsSchema, ubahHargaSchema } from '@/modules/harga/harga.validators';

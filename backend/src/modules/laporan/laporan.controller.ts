@@ -1,8 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
-import ExcelJS from 'exceljs';
 import PDFDocument from 'pdfkit';
 import type { ConnectionPool } from 'mssql';
 import { AppError } from '@/utils/errors';
+import {
+  EXCEL_CONTENT_TYPE,
+  buildExcelWorkbook,
+  excelFilename,
+  type ExcelCell,
+  type ExcelSheetDef,
+} from '@/utils/excel';
 import { ok } from '@/utils/response';
 import * as service from './laporan.service';
 import {
@@ -13,7 +19,7 @@ import {
   parseTrenLayanan,
 } from './laporan.validators';
 
-type Cell = string | number | null;
+type Cell = ExcelCell;
 
 interface RingkasanPayload {
   periode: { dari: string; sampai: string };
@@ -100,7 +106,7 @@ function todayJakarta(): string {
   }).format(new Date());
 }
 
-function flattenRows(laporan: string, data: LaporanPayload): { sheet: string; columns: string[]; rows: Cell[][] }[] {
+function flattenRows(laporan: string, data: LaporanPayload): ExcelSheetDef[] {
   if (laporan === 'ringkasan') {
     const d = data as RingkasanPayload;
     return [{
@@ -141,17 +147,11 @@ function flattenRows(laporan: string, data: LaporanPayload): { sheet: string; co
 }
 
 async function sendExcel(res: Response, slug: string, laporan: string, data: LaporanPayload): Promise<void> {
-  const wb = new ExcelJS.Workbook();
-  for (const def of flattenRows(laporan, data)) {
-    const ws = wb.addWorksheet(def.sheet);
-    ws.addRow(def.columns);
-    for (const row of def.rows) ws.addRow(row);
-  }
-  const buffer = await wb.xlsx.writeBuffer();
-  const filename = `laporan-${slug}-${todayJakarta()}.xlsx`;
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  const buffer = await buildExcelWorkbook(flattenRows(laporan, data));
+  const filename = excelFilename(slug);
+  res.setHeader('Content-Type', EXCEL_CONTENT_TYPE);
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-  res.send(Buffer.from(buffer));
+  res.send(buffer);
 }
 
 function sendPdf(res: Response, slug: string, laporan: string, data: LaporanPayload): void {
