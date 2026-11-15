@@ -36,7 +36,7 @@ INSERT INTO dbo.users (username, password_hash, nama_lengkap, role, no_telepon)
 SELECT v.username, v.password_hash, v.nama_lengkap, v.role, v.no_telepon
 FROM (VALUES
     (N'bidan', N'$2b$12$GOOZ6X6nsASQcDHJdK6JnOGvgNOrhtv9wqZ2MGuj/yHQwhhUrC5MG',
-     N'Bidan Siti Rahmawati', 'BIDAN', N'081234567801'),
+     N'Bdn. Ria Indrasti J., S.Keb', 'BIDAN', N'081234567801'),
     (N'admin', N'$2b$12$3ZkOUaNBEfyEY/xZhijKpOn8ks4MhQ6K2AX2rn6aThQ9d.EUyxKD6',
      N'Admin Praktik Bidan', 'ADMIN', N'081234567802')
 ) AS v (username, password_hash, nama_lengkap, role, no_telepon)
