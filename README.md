@@ -41,6 +41,8 @@ cd backend && npm install && npm run dev
 ```
 Skrip tersedia (`backend/package.json`): `dev` (`tsx watch src/server.ts`), `build` (`tsc && tsc-alias`), `start` (`node dist/server.js`), `typecheck`, `audit:routes`.
 
+> Lokal cukup `npm run dev` (backend & frontend). `npm run build` + `dist/` hanya untuk produksi; folder `dist/` tidak perlu ada saat development.
+
 ### 5) Jalankan frontend
 ```bash
 cd frontend && npm install && npm run dev
