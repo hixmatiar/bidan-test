@@ -448,10 +448,17 @@ export async function appendCatatanKunjungan(
     .query<CatatanKunjunganRow>(`
       SET NOCOUNT ON;
 
+      DECLARE @updated TABLE (
+        kunjungan_id  UNIQUEIDENTIFIER,
+        catatan_bebas NVARCHAR(MAX)
+      );
+
       UPDATE dbo.kunjungan
       SET catatan_bebas = ISNULL(catatan_bebas, N'') + @append_text
-      OUTPUT INSERTED.kunjungan_id, INSERTED.catatan_bebas
+      OUTPUT INSERTED.kunjungan_id, INSERTED.catatan_bebas INTO @updated
       WHERE kunjungan_id = @kunjungan_id;
+
+      SELECT kunjungan_id, catatan_bebas FROM @updated;
     `);
 
   return result.recordset[0] ?? null;
