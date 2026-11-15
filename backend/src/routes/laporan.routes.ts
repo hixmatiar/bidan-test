@@ -5,7 +5,7 @@ import {
   perbandingan,
   ringkasan,
   trenLayanan,
-} from '@/controllers/laporan.controller';
+} from '@/modules/laporan/laporan.controller';
 import { authMiddleware, checkRole } from '@/middlewares/auth';
 import { dbSessionContext } from '@/middlewares/dbSession';
 

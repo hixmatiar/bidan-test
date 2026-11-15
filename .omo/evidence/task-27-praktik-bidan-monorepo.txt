@@ -1,0 +1,26 @@
+Task 27 - Analytics summary, trend, busiest hours
+Status: IMPLEMENTED, LIVE QA BLOCKED (login)
+
+Files (laporan-only):
+- backend/src/modules/laporan/laporan.validators.ts (created)
+- backend/src/modules/laporan/laporan.repository.ts (created)
+- backend/src/modules/laporan/laporan.service.ts (created)
+- backend/src/modules/laporan/laporan.controller.ts (created)
+- backend/src/routes/laporan.routes.ts (rewired from controller stubs to module)
+- backend/src/controllers/laporan.controller.ts (stub removed)
+
+Endpoints: POST /laporan/ringkasan/list, /tren-layanan/list, /jam-tersibuk/list (BIDAN)
+- ringkasan {dari,sampai}: kunjungan count, pasien_baru (pasien.created_at in range), jumlah_reservasi, total_pendapatan (v_rekap_pendapatan), tagihan_belum_lunas (v_tagihan_belum_lunas in range). Range validated, future dari -> 422 ERR-RPT-01.
+- tren-layanan {dari,sampai,grup:BULANAN|HARIAN}: per-period per-layanan counts from kunjungan+layanan sorted periode DESC,jumlah DESC; top diagnoses grouped from kunjungan.diagnosis.
+- jam-tersibuk {}: last-30-day histogram from v_jam_tersibuk normalized to 24 buckets (0-23).
+
+Build/verify:
+- cd backend && npm run build: OK
+- npx tsc --noEmit: OK
+- npm run audit:routes: TOTAL 51 / GET 0 (includes all 5 laporan routes)
+
+Live QA (PORT=4106 nohup node dist/server.js, log /tmp/pb-lap-4106.log PID 38453):
+- POST /auth/login bidan (bidan123): {"status":"error","error_code":"ERR-AUTH-01","message":"Username atau password salah"}
+- POST /auth/login admin (admin123): ERR-AUTH-01
+- bcrypt hashes present in dbo.users (bidan $2b$12$GOOZ..., admin $2b$12$3ZkO...) but do not match provided credentials; dbo.users/password hashes NOT modified per constraint.
+BLOCKED: cannot obtain bidan/admin tokens to assert 200 documented shapes or 403 for admin token on these endpoints without altering auth data.
